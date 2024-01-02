@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <div align="center">
 
   # Chirpy Jekyll Theme
@@ -92,3 +93,6 @@ This project is published under [MIT License][license].
 [jetbrains]: https://www.jetbrains.com/?from=jekyll-theme-chirpy
 [ko-fi]: https://ko-fi.com/coteschung/
 [donation]: https://sponsor.cotes.page/
+=======
+# sumin1ee.github.io
+>>>>>>> 5370febce6a747eb46b42bee802adf945ff9b4a5
