@@ -16,7 +16,7 @@ timezone: Asia/Seoul
 
 title: Sumin's Planning # the main title
 
-tagline: Welcome to my blog! This Blog is for recodding & organizing my study  # it will display as the sub-title
+tagline: Welcome to my blog! This Blog is for recording & organizing my study & daily life # it will display as the sub-title
 
 description: Hello! I'm majoring in Automotive Engineering, Hanyang University. And I'm an undergraduate researcher at IRCV, studying Path Planning for Self-Driving Vehicles. Recently, i'm interested in the methods of Planning which uses Machine & Deep Learning. # used by seo meta and the atom feed
   # A minimal, responsive and feature-rich Jekyll theme for technical writing.
@@ -73,7 +73,7 @@ theme_mode: light # [light|dark]
 img_cdn: "https://chirpy-img.netlify.app"
 
 # the avatar on sidebar, support local or CORS resources
-avatar: "/assets/img/avatar.png"
+avatar: "/assets/img/15.png"
 
 # boolean type, the global switch for TOC in posts.
 toc: true
