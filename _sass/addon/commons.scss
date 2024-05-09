@@ -751,7 +751,7 @@ $btn-mb: 0.5rem;
       @extend %clickable-transition;
       @extend %sidebar-link-hover;
 
-      color: var(--site-title-color);
+      color: rgba(11, 11, 11, 0.99);
     }
   }
 
