@@ -1,6 +1,7 @@
 ---
 # the default layout is 'page'
-icon: fas fa-info-circle
+layout : about me
+icon: fa-regular fa-face-smile
 order: 4
 ---
 
