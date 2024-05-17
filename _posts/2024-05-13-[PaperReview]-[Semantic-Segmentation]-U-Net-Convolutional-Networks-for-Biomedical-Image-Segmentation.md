@@ -57,7 +57,7 @@ BIomedical Image Processing 뿐만이 아니라 CV 자체에 큰 임팩트를 �
 
 여기서 한 걸음 더 나아가, Labeling 된 Class가 이미지 중에 어디에 있는지 찾는 Task가 바로 **Localization**이다. 주로 BBox(Bounding Box)를 찾는데, 즉 Input은 이미지이고, Output은 BBox (주로 center point의 x와 y, 그리고 bbox의 height와 width로 주어진다)로 표현된다.
 
-Localization은 이미지 속에서 하나의 Target Single-Class 에 대해서만 사전에 Labeling한 모든 객체를 이미지속에서 찾고 모두 BBox를 치는게 바로 **Object Detection**이다.
+Localization은 이미지 속에서 **하나의** Target Single-Class 에 대해서만 찾는다. 이에 반해 사전에 Labeling한 **모든 객체**를 이미지속에서 찾고 각각 Localization을 진행하는게 **Object Detection**이다.
 
 이 과정을 거쳐 최종적으로 발전한 단계가 바로 **Image Segmentation**이라고 할 수 있는데, 픽셀별로 Classification & Localization을 진행해서 특정 객체가 정확히 이미지 속에서 어디 있는지 찾는 Task이다.
 
