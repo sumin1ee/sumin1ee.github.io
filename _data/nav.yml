@@ -1,0 +1,11 @@
+- title: posts
+  href: /posts/
+- title: categories
+  href: /categories/
+- title: tags
+  href: /tags/
+- title: about
+  href: /about/
+- title: cv
+  href: "https://sumin1ee.github.io/cv"
+  external: true

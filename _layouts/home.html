@@ -1,118 +1,93 @@
 ---
 layout: default
-refactor: true
 ---
+<div class="shell">
 
-{% include lang.html %}
+  <section class="hero">
+    <div class="terminal">
+      <div class="terminal-bar">
+        <span class="dot dot--r"></span><span class="dot dot--y"></span><span class="dot dot--g"></span>
+        <span class="term-title">~/sumin1ee</span>
+      </div>
+      <div class="terminal-body">
+        <p class="term-line"><span class="term-prompt">$</span> whoami</p>
+        <p class="term-out"><span class="term-name">Sumin Lee</span> &mdash; MS researcher · vision-centric autonomous driving</p>
 
-{% assign pinned = site.posts | where: 'pin', 'true' %}
-{% assign default = site.posts | where_exp: 'item', 'item.pin != true and item.hidden != true' %}
+        <p class="term-line"><span class="term-prompt">$</span> cat ./affiliation</p>
+        <p class="term-out"><a href="{{ site.author.affiliation_url }}" target="_blank" rel="noopener">{{ site.author.affiliation }}</a></p>
 
-{% assign posts = '' | split: '' %}
+        <p class="term-line"><span class="term-prompt">$</span> echo $INTERESTS</p>
+        <p class="term-out">
+          <span class="chip">Gaussian Splatting</span>
+          <span class="chip">Online Mapping</span>
+          <span class="chip">End-to-End Driving</span>
+          <span class="chip">3D Scene Representation</span>
+        </p>
 
-<!-- Get pinned posts -->
+        <p class="term-line term-line--blink"><span class="term-prompt">$</span> <span class="caret">▍</span></p>
+      </div>
+    </div>
+  </section>
 
-{% assign offset = paginator.page | minus: 1 | times: paginator.per_page %}
-{% assign pinned_num = pinned.size | minus: offset %}
+  {%- if site.data.now and site.data.now.items.size > 0 -%}
+  <section class="section">
+    <header class="section-head">
+      <span class="section-num">01</span>
+      <h2 class="section-title">/now</h2>
+      <span class="section-rule"></span>
+    </header>
+    <ul class="now-list">
+      {% for item in site.data.now.items %}
+        <li class="now-item"><span class="now-marker">›</span> {{ item | markdownify | remove: '<p>' | remove: '</p>' }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {%- endif -%}
 
-{% if pinned_num > 0 %}
-  {% for i in (offset..pinned.size) limit: pinned_num %}
-    {% assign posts = posts | push: pinned[i] %}
-  {% endfor %}
-{% else %}
-  {% assign pinned_num = 0 %}
-{% endif %}
+  {%- if site.data.reading and site.data.reading.items.size > 0 -%}
+  <section class="section">
+    <header class="section-head">
+      <span class="section-num">02</span>
+      <h2 class="section-title">/reading</h2>
+      <span class="section-rule"></span>
+    </header>
+    <ul class="reading-list">
+      {% for item in site.data.reading.items %}
+        <li class="reading-item">
+          <a class="reading-title" href="{{ item.url }}" target="_blank" rel="noopener">
+            {{ item.title }} <i class="fas fa-arrow-up-right-from-square"></i>
+          </a>
+          {% if item.venue %}<span class="reading-venue">{{ item.venue }}</span>{% endif %}
+          {% if item.note %}<p class="reading-note">{{ item.note }}</p>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  </section>
+  {%- endif -%}
 
-<!-- Get default posts -->
+  <section class="section">
+    <header class="section-head">
+      <span class="section-num">03</span>
+      <h2 class="section-title">/posts</h2>
+      <span class="section-rule"></span>
+      <a class="section-action" href="{{ '/posts/' | relative_url }}">all <i class="fas fa-arrow-right"></i></a>
+    </header>
+    <ul class="post-list">
+      {% for post in site.posts limit:6 %}
+        <li class="post-item">
+          <a href="{{ post.url | relative_url }}" class="post-link">
+            <time class="post-date">{{ post.date | date: '%Y·%m·%d' }}</time>
+            <span class="post-title">{{ post.title }}</span>
+            {% if post.categories.first %}
+              <span class="post-cat">{{ post.categories.first }}</span>
+            {% endif %}
+          </a>
+        </li>
+      {% endfor %}
+      {% if site.posts.size == 0 %}
+        <li class="empty">No posts yet — first one cooking.</li>
+      {% endif %}
+    </ul>
+  </section>
 
-{% assign default_beg = offset | minus: pinned.size %}
-
-{% if default_beg < 0 %}
-  {% assign default_beg = 0 %}
-{% endif %}
-
-{% assign default_num = paginator.posts | size | minus: pinned_num %}
-{% assign default_end = default_beg | plus: default_num | minus: 1 %}
-
-{% if default_num > 0 %}
-  {% for i in (default_beg..default_end) %}
-    {% assign posts = posts | push: default[i] %}
-  {% endfor %}
-{% endif %}
-
-<div id="post-list" class="flex-grow-1 px-xl-1">
-  {% for post in posts %}
-    <article class="card-wrapper card">
-      <a href="{{ post.url | relative_url }}" class="post-preview row g-0 flex-md-row-reverse">
-        {% assign card_body_col = '12' %}
-
-        {% if post.image %}
-          {% assign src = post.image.path | default: post.image %}
-          {% unless src contains '//' %}
-            {% assign src = post.img_path | append: '/' | append: src | replace: '//', '/' %}
-          {% endunless %}
-
-          {% assign alt = post.image.alt | xml_escape | default: 'Preview Image' %}
-
-          {% assign lqip = null %}
-
-          {% if post.image.lqip %}
-            {% capture lqip %}lqip="{{ post.image.lqip }}"{% endcapture %}
-          {% endif %}
-
-          <div class="col-md-5">
-            <img src="{{ src }}" alt="{{ alt }}" {{ lqip }}>
-          </div>
-
-          {% assign card_body_col = '7' %}
-        {% endif %}
-
-        <div class="col-md-{{ card_body_col }}">
-          <div class="card-body d-flex flex-column">
-            <h1 class="card-title my-2 mt-md-0">{{ post.title }}</h1>
-
-            <div class="card-text content mt-0 mb-3">
-              <p>
-                {% include no-linenos.html content=post.content %}
-                {{ content | markdownify | strip_html | truncate: 200 | escape }}
-              </p>
-            </div>
-
-            <div class="post-meta flex-grow-1 d-flex align-items-end">
-              <div class="me-auto">
-                <!-- posted date -->
-                <i class="far fa-calendar fa-fw me-1"></i>
-                {% include datetime.html date=post.date lang=lang %}
-
-                <!-- categories -->
-                {% if post.categories.size > 0 %}
-                  <i class="far fa-folder-open fa-fw me-1"></i>
-                  <span class="categories">
-                    {% for category in post.categories %}
-                      {{ category }}
-                      {%- unless forloop.last -%},{%- endunless -%}
-                    {% endfor %}
-                  </span>
-                {% endif %}
-              </div>
-
-              {% if post.pin %}
-                <div class="pin ms-1">
-                  <i class="fas fa-thumbtack fa-fw"></i>
-                  <span>{{ site.data.locales[lang].post.pin_prompt }}</span>
-                </div>
-              {% endif %}
-            </div>
-            <!-- .post-meta -->
-          </div>
-          <!-- .card-body -->
-        </div>
-      </a>
-    </article>
-  {% endfor %}
 </div>
-<!-- #post-list -->
-
-{% if paginator.total_pages > 1 %}
-  {% include post-paginator.html %}
-{% endif %}

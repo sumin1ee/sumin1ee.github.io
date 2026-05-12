@@ -1,0 +1,16 @@
+# Papers / books I'm currently reading. Edit liberally — this becomes a feed.
+items:
+  - title: "3D Gaussian Splatting for Real-Time Radiance Field Rendering"
+    venue: "SIGGRAPH 2023"
+    url: "https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/"
+    note: "The paper that started it all — re-reading to sharpen my mental model."
+
+  - title: "MapTR: Structured Modeling and Learning for Online Vectorized HD Map Construction"
+    venue: "ICLR 2023"
+    url: "https://arxiv.org/abs/2208.14437"
+    note: "Foundational online-mapping baseline."
+
+  - title: "UniAD: Planning-Oriented Autonomous Driving"
+    venue: "CVPR 2023 Best Paper"
+    url: "https://arxiv.org/abs/2212.10156"
+    note: "End-to-end planning framework — the blueprint for vision-centric driving."

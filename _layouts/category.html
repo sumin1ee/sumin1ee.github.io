@@ -1,24 +1,23 @@
 ---
-layout: page
-# The Category layout
+layout: default
 ---
-
-{% include lang.html %}
-
-<div id="page-category">
-  <h1 class="ps-lg-2">
-    <i class="far fa-folder-open fa-fw text-muted"></i>
-    {{ page.title }}
-    <span class="lead text-muted ps-2">{{ page.posts | size }}</span>
-  </h1>
-
-  <ul class="content ps-0">
+<div class="shell archive-shell">
+  <header class="archive-head">
+    <p class="archive-kicker">category</p>
+    <h1 class="archive-title">{{ page.title }}</h1>
+    <p class="archive-meta">{{ page.posts.size }} {% if page.posts.size == 1 %}entry{% else %}entries{% endif %}</p>
+  </header>
+  <ul class="archive-list">
     {% for post in page.posts %}
-      <li class="d-flex justify-content-between px-md-3">
-        <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-        <span class="dash flex-grow-1"></span>
-        {% include datetime.html date=post.date class='text-muted small text-nowrap' lang=lang %}
+      <li class="archive-item">
+        <a href="{{ post.url | relative_url }}" class="archive-link">
+          <time class="archive-date">{{ post.date | date: '%Y·%m·%d' }}</time>
+          <span class="archive-name">{{ post.title }}</span>
+        </a>
       </li>
     {% endfor %}
   </ul>
+  <p class="back-row">
+    <a href="{{ '/categories/' | relative_url }}" class="back-link"><i class="fas fa-arrow-left"></i> all categories</a>
+  </p>
 </div>

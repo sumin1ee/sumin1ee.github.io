@@ -1,139 +1,47 @@
 ---
 layout: default
-refactor: true
-panel_includes:
-  - toc
-tail_includes:
-  - related-posts
-  - post-nav
-  - comments
 ---
+<div class="reading-progress"><div class="reading-progress-bar" id="reading-progress-bar"></div></div>
 
-{% include lang.html %}
+<div class="shell post-shell">
 
-<article class="px-1">
-  <header>
-    <h1 data-toc-skip>{{ page.title }}</h1>
-
-    <div class="post-meta text-muted">
-      <!-- published date -->
-      <span>
-        {{ site.data.locales[lang].post.posted }}
-        {% include datetime.html date=page.date tooltip=true lang=lang %}
-      </span>
-
-      <!-- lastmod date -->
-      {% if page.last_modified_at and page.last_modified_at != page.date %}
-        <span>
-          {{ site.data.locales[lang].post.updated }}
-          {% include datetime.html date=page.last_modified_at tooltip=true lang=lang %}
-        </span>
-      {% endif %}
-
-      {% if page.image %}
-        {% capture src %}src="{{ page.image.path | default: page.image }}"{% endcapture %}
-        {% capture class %}class="preview-img{% if page.image.no_bg %}{{ ' no-bg' }}{% endif %}"{% endcapture %}
-        {% capture alt %}alt="{{ page.image.alt | xml_escape | default: "Preview Image" }}"{% endcapture %}
-
-        {% if page.image.lqip %}
-          {%- capture lqip -%}lqip="{{ page.image.lqip }}"{%- endcapture -%}
+  <article class="post">
+    <header class="post-head">
+      <p class="post-meta">
+        <time datetime="{{ page.date | date_to_xmlschema }}">{{ page.date | date: '%Y · %m · %d' }}</time>
+        {% if page.categories.size > 0 %}
+          <span class="sep">·</span>
+          {% for c in page.categories %}<a href="{{ '/categories/' | append: c | downcase | relative_url }}" class="cat-link">{{ c }}</a>{% unless forloop.last %}, {% endunless %}{% endfor %}
         {% endif %}
-
-        <div class="mt-3 mb-3">
-          <img {{ src }} {{ class }} {{ alt }} w="1200" h="630" {{ lqip }}>
-          {%- if page.image.alt -%}
-            <figcaption class="text-center pt-2 pb-2">{{ page.image.alt }}</figcaption>
-          {%- endif -%}
+      </p>
+      <h1 class="post-title">{{ page.title }}</h1>
+      {% if page.subtitle %}<p class="post-subtitle">{{ page.subtitle }}</p>{% endif %}
+      {% if page.tags.size > 0 %}
+        <div class="chip-row chip-row--compact">
+          {% for t in page.tags %}<a class="chip chip--mono" href="{{ '/tags/' | append: t | downcase | relative_url }}">#{{ t }}</a>{% endfor %}
         </div>
       {% endif %}
+    </header>
 
-      <div class="d-flex justify-content-between">
-        <!-- author(s) -->
-        <span>
-          {% if page.author %}
-            {% assign authors = page.author %}
-          {% elsif page.authors %}
-            {% assign authors = page.authors %}
-          {% endif %}
+    <div class="post-grid">
+      {%- if page.toc != false -%}
+      <aside class="toc-aside" aria-label="Table of contents">
+        <div class="toc-sticky">
+          <p class="toc-label">contents</p>
+          <nav class="toc" id="toc-target" aria-label="In-page navigation">
+            <!-- populated by post.js from the rendered headings -->
+          </nav>
+        </div>
+      </aside>
+      {%- endif -%}
 
-          {{ site.data.locales[lang].post.written_by }}
-
-          <em>
-            {% if authors %}
-              {% for author in authors %}
-                {% if site.data.authors[author].url -%}
-                  <a href="{{ site.data.authors[author].url }}">{{ site.data.authors[author].name }}</a>
-                {%- else -%}
-                  {{ site.data.authors[author].name }}
-                {%- endif %}
-                {% unless forloop.last %}{{ '</em>, <em>' }}{% endunless %}
-              {% endfor %}
-            {% else %}
-              <a href="{{ site.social.links[0] }}">{{ site.social.name }}</a>
-            {% endif %}
-          </em>
-        </span>
-
-        <!-- read time -->
-        {% include read-time.html content=content prompt=true lang=lang %}
+      <div class="post-content">
+        {{ content }}
       </div>
-      <!-- .d-flex -->
     </div>
-    <!-- .post-meta -->
-  </header>
 
-  <div class="content">
-    {{ content }}
-  </div>
-
-  <div class="post-tail-wrapper text-muted">
-    <!-- categories -->
-    {% if page.categories.size > 0 %}
-      <div class="post-meta mb-3">
-        <i class="far fa-folder-open fa-fw me-1"></i>
-        {% for category in page.categories %}
-          <a href="{{ site.baseurl }}/categories/{{ category | slugify | url_encode }}/">{{ category }}</a>
-          {%- unless forloop.last -%},{%- endunless -%}
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    <!-- tags -->
-    {% if page.tags.size > 0 %}
-      <div class="post-tags">
-        <i class="fa fa-tags fa-fw me-1"></i>
-        {% for tag in page.tags %}
-          <a
-            href="{{ site.baseurl }}/tags/{{ tag | slugify | url_encode }}/"
-            class="post-tag no-text-decoration"
-          >
-            {{- tag -}}
-          </a>
-        {% endfor %}
-      </div>
-    {% endif %}
-
-    <div
-      class="
-        post-tail-bottom
-        d-flex justify-content-between align-items-center mt-5 pb-2
-      "
-    >
-      <div class="license-wrapper">
-        {% if site.data.locales[lang].copyright.license.template %}
-          {% capture _replacement %}
-        <a href="{{ site.data.locales[lang].copyright.license.link }}">
-          {{ site.data.locales[lang].copyright.license.name }}
-        </a>
-        {% endcapture %}
-
-          {{ site.data.locales[lang].copyright.license.template | replace: ':LICENSE_NAME', _replacement }}
-        {% endif %}
-      </div>
-
-      {% include post-sharing.html lang=lang %}
-    </div>
-    <!-- .post-tail-bottom -->
-  </div>
-  <!-- div.post-tail-wrapper -->
-</article>
+    <footer class="post-foot">
+      <a href="{{ '/posts/' | relative_url }}" class="back-link"><i class="fas fa-arrow-left"></i> all posts</a>
+    </footer>
+  </article>
+</div>

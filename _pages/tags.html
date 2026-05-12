@@ -1,0 +1,19 @@
+---
+layout: page
+title: Tags
+permalink: /tags/
+---
+
+{% assign tags = site.tags | sort %}
+<ul class="taxonomy-list">
+  {% for tag in tags %}
+    <li class="taxonomy-item">
+      <a href="{{ '/tags/' | append: tag[0] | downcase | relative_url }}">
+        <span class="taxonomy-name">#{{ tag[0] }}</span>
+        <span class="taxonomy-count">{{ tag[1].size }}</span>
+      </a>
+    </li>
+  {% else %}
+    <li class="empty">No tags yet.</li>
+  {% endfor %}
+</ul>
