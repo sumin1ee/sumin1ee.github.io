@@ -14,12 +14,11 @@ timezone: Asia/Seoul
 # jekyll-seo-tag settings › https://github.com/jekyll/jekyll-seo-tag/blob/master/docs/usage.md
 # ↓ --------------------------
 
-title: Sumin's Planning # the main title
+title: Sumin Lee # the main title
 
-tagline: Welcome to my blog! This Blog is for recording & organizing my study & daily life # it will display as the sub-title
+tagline: Notes on autonomous driving, computer vision, and the road in between. # it will display as the sub-title
 
-description: Hello! I'm majoring in Automotive Engineering, Hanyang University. And I'm an undergraduate researcher at IRCV, studying Path Planning for Self-Driving Vehicles. Recently, i'm interested in the methods of Planning which uses Machine & Deep Learning. # used by seo meta and the atom feed
-  # A minimal, responsive and feature-rich Jekyll theme for technical writing.
+description: Research notebook of Sumin Lee — MS researcher at the Intelligent Robotics & Computer Vision Lab, Hanyang University. Papers, projects, and study notes on Gaussian Splatting, online mapping, and end-to-end driving. # used by seo meta and the atom feed
 
 # Fill in the protocol & hostname for your site.
 # e.g. 'https://username.github.io', note that it does not end with a '/'.
@@ -41,11 +40,9 @@ social:
   email: maroona@hanyang.ac.kr # change to your email address
   links:
     # The first element serves as the copyright owner's link
-    - https://www.instagram.com/whereisumin # change to your twitter homepage
-    - https://github.com/sumin1ee # change to your github homepage
-    # Uncomment below to add more social links
-    # - https://www.facebook.com/username
-    # - https://www.linkedin.com/in/username
+    - https://sumin1ee.github.io/cv
+    - https://github.com/sumin1ee
+    # Add scholar/arxiv when public
 
 google_site_verification: # fill in to your verification string
 
