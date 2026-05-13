@@ -35,6 +35,7 @@ permalink: /reading/
             </span>
           </div>
           {% if item.authors %}<p class="reading-authors">{{ item.authors }}</p>{% endif %}
+          {% if item.award %}<p class="reading-award">★ {{ item.award }}</p>{% endif %}
           {% if item.note %}<p class="reading-note">{{ item.note }}</p>{% endif %}
         </li>
       {% endfor %}

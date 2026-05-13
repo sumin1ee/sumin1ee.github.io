@@ -1,6 +1,5 @@
-# Grouped reading list. Each group has an id, label, blurb, and items.
-# Items: { title, authors, venue, year, url, note? }
-# Update by editing this file — page rebuilds automatically.
+# Grouped reading list, venue-verified.
+# Items: { title, authors, venue, year, award?, url, note? }
 
 groups:
   - id: nerf
@@ -9,8 +8,9 @@ groups:
     items:
       - title: "NeRF: Representing Scenes as Neural Radiance Fields for View Synthesis"
         authors: "Mildenhall, Srinivasan, Tancik, Barron, Ramamoorthi, Ng"
-        venue: "ECCV (Best Paper Honourable Mention)"
+        venue: "ECCV"
         year: 2020
+        award: "Oral · Best Paper Honorable Mention"
         url: "https://arxiv.org/abs/2003.08934"
         note: "The paper that started everything — volume rendering meets MLPs."
 
@@ -20,23 +20,45 @@ groups:
         year: 2021
         url: "https://arxiv.org/abs/2008.02268"
 
+      - title: "PixelNeRF: Neural Radiance Fields from One or Few Images"
+        authors: "Yu et al."
+        venue: "CVPR"
+        year: 2021
+        url: "https://arxiv.org/abs/2012.02190"
+
       - title: "Mip-NeRF: A Multiscale Representation for Anti-Aliasing Neural Radiance Fields"
         authors: "Barron et al."
         venue: "ICCV"
         year: 2021
+        award: "Oral · Honorable Mention"
         url: "https://arxiv.org/abs/2103.13415"
+
+      - title: "BARF: Bundle-Adjusting Neural Radiance Fields"
+        authors: "Lin et al."
+        venue: "ICCV"
+        year: 2021
+        award: "Oral"
+        url: "https://arxiv.org/abs/2104.06405"
+
+      - title: "Nerfies: Deformable Neural Radiance Fields"
+        authors: "Park et al."
+        venue: "ICCV"
+        year: 2021
+        url: "https://arxiv.org/abs/2011.12948"
 
       - title: "Plenoxels: Radiance Fields without Neural Networks"
         authors: "Yu, Fridovich-Keil et al."
         venue: "CVPR"
         year: 2022
+        award: "Oral"
         url: "https://arxiv.org/abs/2112.05131"
         note: "Sparse voxel grids — the first hint that explicit primitives could beat MLPs on speed."
 
       - title: "Instant Neural Graphics Primitives with a Multiresolution Hash Encoding"
         authors: "Müller et al."
-        venue: "SIGGRAPH"
+        venue: "SIGGRAPH (TOG)"
         year: 2022
+        award: "Best Paper"
         url: "https://arxiv.org/abs/2201.05989"
         note: "Instant-NGP — multi-resolution hash grids; training a NeRF in seconds."
 
@@ -52,35 +74,18 @@ groups:
         year: 2022
         url: "https://arxiv.org/abs/2203.09517"
 
-      - title: "BARF: Bundle-Adjusting Neural Radiance Fields"
-        authors: "Lin et al."
-        venue: "ICCV"
-        year: 2021
-        url: "https://arxiv.org/abs/2104.06405"
-
-      - title: "Nerfies: Deformable Neural Radiance Fields"
-        authors: "Park et al."
-        venue: "ICCV"
-        year: 2021
-        url: "https://arxiv.org/abs/2011.12948"
-
-      - title: "PixelNeRF: Neural Radiance Fields from One or Few Images"
-        authors: "Yu et al."
+      - title: "K-Planes: Explicit Radiance Fields in Space, Time, and Appearance"
+        authors: "Fridovich-Keil et al."
         venue: "CVPR"
-        year: 2021
-        url: "https://arxiv.org/abs/2012.02190"
+        year: 2023
+        award: "Highlight"
+        url: "https://arxiv.org/abs/2301.10241"
 
       - title: "Zip-NeRF: Anti-Aliased Grid-Based Neural Radiance Fields"
         authors: "Barron et al."
         venue: "ICCV"
         year: 2023
         url: "https://arxiv.org/abs/2304.06706"
-
-      - title: "K-Planes: Explicit Radiance Fields in Space, Time, and Appearance"
-        authors: "Fridovich-Keil et al."
-        venue: "CVPR"
-        year: 2023
-        url: "https://arxiv.org/abs/2301.10241"
 
       - title: "Nerfstudio: A Modular Framework for Neural Radiance Field Development"
         authors: "Tancik et al."
@@ -92,18 +97,19 @@ groups:
     label: Gaussian Splatting · Autonomous Driving
     blurb: "Explicit radiance primitives applied to street-scale reconstruction — dynamic, unbounded, multi-sensor."
     items:
-      - title: "3D Gaussian Splatting for Real-Time Radiance Field Rendering"
-        authors: "Kerbl, Kopanas, Leimkühler, Drettakis"
-        venue: "SIGGRAPH"
-        year: 2023
-        url: "https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/"
-        note: "The paper that opened the door — explicit primitives that train and render in minutes."
-
       - title: "Block-NeRF: Scalable Large Scene Neural View Synthesis"
         authors: "Tancik et al."
         venue: "CVPR"
         year: 2022
         url: "https://arxiv.org/abs/2202.05263"
+
+      - title: "3D Gaussian Splatting for Real-Time Radiance Field Rendering"
+        authors: "Kerbl, Kopanas, Leimkühler, Drettakis"
+        venue: "SIGGRAPH (TOG)"
+        year: 2023
+        award: "Best Paper"
+        url: "https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/"
+        note: "The paper that opened the door — explicit primitives that train and render in minutes."
 
       - title: "StreetSurf: Extending Multi-View Implicit Surface Reconstruction to Street Views"
         authors: "Guo et al."
@@ -115,12 +121,14 @@ groups:
         authors: "Wu et al."
         venue: "CICAI"
         year: 2023
+        award: "Best Paper Runner-up"
         url: "https://arxiv.org/abs/2307.15058"
 
       - title: "UniSim: A Neural Closed-Loop Sensor Simulator"
         authors: "Yang et al."
         venue: "CVPR"
         year: 2023
+        award: "Highlight"
         url: "https://arxiv.org/abs/2308.01898"
 
       - title: "EmerNeRF: Emergent Spatial-Temporal Scene Decomposition via Self-Supervision"
@@ -159,6 +167,13 @@ groups:
         venue: "CVPR"
         year: 2024
         url: "https://arxiv.org/abs/2310.08528"
+
+      - title: "3D Gaussian Splatting as Markov Chain Monte Carlo"
+        authors: "Kheradmand et al."
+        venue: "NeurIPS"
+        year: 2024
+        award: "Spotlight"
+        url: "https://arxiv.org/abs/2404.09591"
 
       - title: "Periodic Vibration Gaussian: Dynamic Urban Scene Reconstruction and Real-Time Rendering"
         authors: "Chen et al."
@@ -205,7 +220,7 @@ groups:
 
       - title: "LiHi-GS: LiDAR-Supervised Gaussian Splatting for Highway Driving"
         authors: "Kung et al."
-        venue: "RA-L"
+        venue: "IV"
         year: 2025
         url: "https://arxiv.org/abs/2412.15447"
 
@@ -214,12 +229,6 @@ groups:
         venue: "NeurIPS"
         year: 2025
         url: "https://arxiv.org/abs/2505.04708"
-
-      - title: "3D Gaussian Splatting as Markov Chain Monte Carlo"
-        authors: "Kheradmand et al."
-        venue: "NeurIPS"
-        year: 2024
-        url: "https://arxiv.org/abs/2404.09591"
 
   - id: mapping
     label: Online HD Map Construction
@@ -236,6 +245,7 @@ groups:
         authors: "Liao et al."
         venue: "ICLR"
         year: 2023
+        award: "Spotlight"
         url: "https://arxiv.org/abs/2208.14437"
         note: "Vectorized output via permutation-invariant point sets — the dominant paradigm since."
 
@@ -261,6 +271,7 @@ groups:
         authors: "Chen et al."
         venue: "ECCV"
         year: 2024
+        award: "Oral"
         url: "https://arxiv.org/abs/2403.15951"
 
       - title: "Mask2Map: Vectorized HD Map Construction Using Bird's Eye View Segmentation Masks"
@@ -275,17 +286,24 @@ groups:
         year: 2024
         url: "https://arxiv.org/abs/2403.10521"
 
-      - title: "Enhancing Vectorized Map Perception with Historical Rasterized Maps"
+      - title: "HRMapNet: Enhancing Vectorized Map Perception with Historical Rasterized Maps"
         authors: "Zhang et al."
         venue: "ECCV"
         year: 2024
         url: "https://arxiv.org/abs/2409.00620"
 
-      - title: "Leveraging Enhanced Queries of Point Sets for Vectorized Map Construction"
+      - title: "MapQR: Leveraging Enhanced Queries of Point Sets for Vectorized Map Construction"
         authors: "Liu et al."
         venue: "ECCV"
         year: 2024
         url: "https://arxiv.org/abs/2402.17430"
+
+      - title: "Complementing Onboard Sensors with Satellite Maps for HD Map Construction"
+        authors: "Gao et al."
+        venue: "ICRA"
+        year: 2024
+        url: "https://arxiv.org/abs/2308.15427"
+        note: "Early exemplar of satellite priors for online mapping."
 
       - title: "MapExpert: Online HD Map Construction with Simple and Efficient Sparse Map Element Expert"
         authors: "Zhang et al."
@@ -299,6 +317,12 @@ groups:
         year: 2025
         url: "https://arxiv.org/abs/2409.18737"
 
+      - title: "PriorDrive: Enhancing Online HD Mapping with Unified Vector Priors"
+        authors: "Zeng et al."
+        venue: "AAAI"
+        year: 2025
+        url: "https://arxiv.org/abs/2409.05352"
+
       - title: "DAMap: Distance-Aware MapNet for High Quality HD Map Construction"
         authors: "Dong et al."
         venue: "ICCV"
@@ -310,19 +334,6 @@ groups:
         venue: "NeurIPS"
         year: 2025
         url: "https://arxiv.org/abs/2506.08997"
-
-      - title: "PriorDrive: Enhancing Online HD Mapping with Unified Vector Priors"
-        authors: "Zeng et al."
-        venue: "AAAI"
-        year: 2026
-        url: "https://arxiv.org/abs/2409.05352"
-
-      - title: "Complementing Onboard Sensors with Satellite Maps for HD Map Construction"
-        authors: "Gao et al."
-        venue: "ICRA"
-        year: 2024
-        url: "https://arxiv.org/abs/2308.15427"
-        note: "Early exemplar of satellite priors for online mapping."
 
       - title: "SatMap: Revisiting Satellite Maps as Prior for Online HD Map Construction"
         authors: "Mazumder, Flohr"
@@ -336,8 +347,9 @@ groups:
     items:
       - title: "UniAD: Planning-Oriented Autonomous Driving"
         authors: "Hu et al."
-        venue: "CVPR (Best Paper)"
+        venue: "CVPR"
         year: 2023
+        award: "Best Paper"
         url: "https://arxiv.org/abs/2212.10156"
         note: "The lodestar — perception, prediction, planning fused in one query-based stack."
 
@@ -359,12 +371,12 @@ groups:
         year: 2024
         url: "https://arxiv.org/abs/2311.16038"
 
-      - title: "Open-Loop vs Closed-Loop Evaluation of End-to-End Driving"
+      - title: "Is Ego Status All You Need for Open-Loop End-to-End Autonomous Driving?"
         authors: "Li et al."
         venue: "CVPR"
         year: 2024
         url: "https://arxiv.org/abs/2312.03031"
-        note: "A clear-eyed reset on what the early E2E numbers really meant."
+        note: "A clear-eyed reset on what the early E2E open-loop numbers really meant."
 
       - title: "GenAD: Generative End-to-End Autonomous Driving"
         authors: "Zheng et al."
@@ -384,30 +396,6 @@ groups:
         year: 2024
         url: "https://arxiv.org/abs/2406.04767"
 
-      - title: "SparseDrive: End-to-End Autonomous Driving via Sparse Scene Representation"
-        authors: "Sun et al."
-        venue: "ICRA"
-        year: 2025
-        url: "https://arxiv.org/abs/2405.19620"
-
-      - title: "DriveTransformer: Unified Transformer for Scalable End-to-End Autonomous Driving"
-        authors: "Jia et al."
-        venue: "ICLR"
-        year: 2025
-        url: "https://arxiv.org/abs/2503.07656"
-
-      - title: "DiffusionDrive: Truncated Diffusion Model for End-to-End Autonomous Driving"
-        authors: "Liao et al."
-        venue: "CVPR"
-        year: 2025
-        url: "https://arxiv.org/abs/2411.15139"
-
-      - title: "Hydra-MDP: End-to-End Multimodal Planning with Multi-Target Hydra Distillation"
-        authors: "Li et al."
-        venue: "CVPR"
-        year: 2025
-        url: "https://arxiv.org/abs/2406.06978"
-
       - title: "DriveWorld: 4D Pre-Trained Scene Understanding via World Models for AD"
         authors: "Min et al."
         venue: "CVPR"
@@ -424,4 +412,31 @@ groups:
         authors: "Wang et al."
         venue: "CVPR"
         year: 2024
+        award: "Highlight"
         url: "https://arxiv.org/abs/2311.17918"
+
+      - title: "Hydra-MDP: End-to-End Multimodal Planning with Multi-Target Hydra Distillation"
+        authors: "Li et al."
+        venue: "CVPR Workshop"
+        year: 2024
+        award: "E2E AD Challenge — 1st place"
+        url: "https://arxiv.org/abs/2406.06978"
+
+      - title: "SparseDrive: End-to-End Autonomous Driving via Sparse Scene Representation"
+        authors: "Sun et al."
+        venue: "ICRA"
+        year: 2025
+        url: "https://arxiv.org/abs/2405.19620"
+
+      - title: "DriveTransformer: Unified Transformer for Scalable End-to-End Autonomous Driving"
+        authors: "Jia et al."
+        venue: "ICLR"
+        year: 2025
+        url: "https://arxiv.org/abs/2503.07656"
+
+      - title: "DiffusionDrive: Truncated Diffusion Model for End-to-End Autonomous Driving"
+        authors: "Liao et al."
+        venue: "CVPR"
+        year: 2025
+        award: "Highlight"
+        url: "https://arxiv.org/abs/2411.15139"

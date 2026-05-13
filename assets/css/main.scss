@@ -521,6 +521,13 @@ th { color: var(--ink-0); font-weight: 600; }
   margin: 4px 0 0;
   font-style: italic;
 }
+.reading-award {
+  color: var(--accent-warn);
+  font-family: var(--f-mono);
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  margin: 4px 0 0;
+}
 
 /* ---- home /reading snapshot ------------------------------------------ */
 .reading-snapshot {
