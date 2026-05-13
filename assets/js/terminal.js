@@ -85,7 +85,7 @@
         case 'about':
         case 'about.md':
           return INDEX.site.tagline + '<br>' +
-            `<span class="t-dim">A research notebook on Gaussian Splatting, online mapping, and end-to-end driving.</span>`;
+            `<span class="t-dim">A research notebook on Gaussian Splatting, Online Mapping, and end-to-end driving.</span>`;
         case 'contact':
         case 'contact.txt':
           return `email: <a href="mailto:${INDEX.site.author.email}">${INDEX.site.author.email}</a><br>` +

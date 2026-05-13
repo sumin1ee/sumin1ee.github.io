@@ -18,7 +18,7 @@ commits:
   - hash: "f29b3c4"
     date: "2025-09-03"
     author: "sumin1ee"
-    msg: "kick off online mapping with satellite priors (ReSMap)"
+    msg: "kick off Online Mapping with satellite priors (ReSMap)"
 
   - hash: "c4e7a91"
     date: "2025-06-12"
