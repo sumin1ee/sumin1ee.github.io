@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    # Daily at 03:00 UTC (=12:00 KST) — keeps the GitHub contribution graph fresh
+    - cron: "0 3 * * *"
 
 permissions:
   contents: read
@@ -30,6 +33,14 @@ jobs:
         with:
           ruby-version: 3.2
           bundler-cache: true
+
+      - name: Fetch GitHub contributions
+        run: |
+          mkdir -p _data
+          python3 .github/scripts/fetch_contributions.py
+        env:
+          GH_USER: ${{ vars.GH_USER || 'sumin1ee' }}
+          GH_TOKEN: ${{ secrets.CONTRIBUTIONS_TOKEN || secrets.GITHUB_TOKEN }}
 
       - name: Build site
         run: bundle exec jekyll build -d "_site${{ steps.pages.outputs.base_path }}"

@@ -7,6 +7,9 @@ Gemfile.lock
 .jekyll-cache
 _site
 
+# Build-time data
+_data/contributions.json
+
 # RubyGems
 *.gem
 

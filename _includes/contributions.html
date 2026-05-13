@@ -1,0 +1,76 @@
+{%- comment -%}
+Renders a GitHub-style contribution heatmap from _data/contributions.json.
+Falls back gracefully if the data file is missing (first-ever build).
+{%- endcomment -%}
+
+{%- assign c = site.data.contributions -%}
+{%- if c -%}
+  {%- assign weeks = c.weeks -%}
+  {%- assign cell  = 12 -%}
+  {%- assign gap   = 3 -%}
+  {%- assign cw    = cell | plus: gap -%}
+  {%- assign width = weeks.size | times: cw -%}
+  {%- assign height = cell | times: 7 | plus: gap | times: 6 | plus: 6 -%}
+
+<div class="contrib-wrap">
+  <header class="contrib-head">
+    <span class="contrib-total"><strong>{{ c.total }}</strong> contributions in the last year</span>
+    <span class="contrib-streak">
+      <span title="Current streak">→ {{ c.streak.current }}d</span>
+      <span class="sep">·</span>
+      <span title="Longest streak in this window">★ {{ c.streak.longest }}d</span>
+      <span class="sep">·</span>
+      <a href="https://github.com/{{ c.user }}" target="_blank" rel="noopener">@{{ c.user }} <i class="fas fa-arrow-up-right-from-square"></i></a>
+    </span>
+  </header>
+
+  <div class="contrib-scroll">
+    <svg
+      class="contrib-svg"
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 {{ width }} {{ height }}"
+      preserveAspectRatio="xMidYMid meet"
+      role="img"
+      aria-label="GitHub contribution heatmap for {{ c.user }}: {{ c.total }} contributions in the last year"
+    >
+      {%- for w in weeks -%}
+        {%- assign wi = forloop.index0 -%}
+        {%- for d in w.days -%}
+          {%- assign di = forloop.index0 -%}
+          {%- assign x = wi | times: cw -%}
+          {%- assign y = di | times: cw -%}
+          <rect
+            x="{{ x }}" y="{{ y }}"
+            width="{{ cell }}" height="{{ cell }}"
+            rx="2" ry="2"
+            class="contrib-cell contrib-l{{ d.level }}"
+            data-date="{{ d.date }}"
+            data-count="{{ d.count }}"
+          >
+            <title>{{ d.date }} · {{ d.count }} contribution{% if d.count != 1 %}s{% endif %}</title>
+          </rect>
+        {%- endfor -%}
+      {%- endfor -%}
+    </svg>
+  </div>
+
+  <footer class="contrib-foot">
+    <span class="contrib-legend">
+      Less
+      <span class="contrib-swatch contrib-l0"></span>
+      <span class="contrib-swatch contrib-l1"></span>
+      <span class="contrib-swatch contrib-l2"></span>
+      <span class="contrib-swatch contrib-l3"></span>
+      <span class="contrib-swatch contrib-l4"></span>
+      More
+    </span>
+    <span class="contrib-meta">
+      synced {{ c.fetched_at | date: '%Y·%m·%d %H:%M' }} UTC
+    </span>
+  </footer>
+</div>
+{%- else -%}
+  <div class="contrib-wrap contrib-wrap--empty">
+    <span class="contrib-empty">contribution data will appear after the next scheduled build</span>
+  </div>
+{%- endif -%}
