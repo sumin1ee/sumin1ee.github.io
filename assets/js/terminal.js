@@ -55,6 +55,7 @@
         ['ls',             'list site sections'],
         ['cat <file>',     'read a section: about, contact, now, affiliation'],
         ['find <pattern>', 'search posts + reading list (case-insensitive substring)'],
+        ['git log',        'commit log of my research life'],
         ['open <name>',    'jump to a section in this browser tab'],
         ['theme',          'toggle dark / light mode'],
         ['clear',          'clear the terminal'],
@@ -178,6 +179,26 @@
 
     date: () => new Date().toString(),
 
+    git: (arg) => {
+      const sub = (arg || '').trim().split(/\s+/)[0].toLowerCase();
+      if (!sub) return `<span class="t-dim">usage: git &lt;command&gt; — try <span class="t-cmd">git log</span></span>`;
+      if (sub === 'log') return gitLog();
+      if (sub === 'status') {
+        return `On branch <span class="t-cmd">main</span><br>` +
+               `Your research is ahead of 'origin/main' by 2 papers.<br>` +
+               `<span class="t-dim">  (use "git push" to publish)</span><br><br>` +
+               `Changes not staged for commit:<br>` +
+               `  <span class="t-err">modified:</span>   CamoSplat.tex<br>` +
+               `  <span class="t-err">modified:</span>   ReSMap.tex<br>` +
+               `  <span class="t-err">untracked:</span>  next-idea.md`;
+      }
+      if (sub === 'blame') return `<span class="t-dim">blame: don't blame me, blame the reviewers.</span>`;
+      if (sub === 'push')  return `<span class="t-dim">remote: hold on, submission window opens in T-7 months.</span>`;
+      if (sub === 'pull')  return `<span class="t-dim">Already up to date with reality.</span>`;
+      if (sub === 'commit') return `<span class="t-err">git: please use real git to commit research progress.</span>`;
+      return `<span class="t-err">git: '${escapeHtml(sub)}' is not a supported command here. Try <span class="t-cmd">git log</span>.</span>`;
+    },
+
     // easter eggs
     sudo: () => `<span class="t-err">sudo: permission denied — this is a static site, friend.</span>`,
     rm:   () => `<span class="t-err">rm: nice try.</span>`,
@@ -190,6 +211,42 @@
     return escapeHtml(s)
       .replace(/\*\*([^*]+)\*\*/g, '<span class="t-strong">$1</span>')
       .replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  }
+
+  // Render a `git log --decorate --oneline`-ish view.
+  function gitLog() {
+    const commits = (INDEX.git_log || []);
+    if (commits.length === 0) {
+      return `<span class="t-dim">(no commits yet)</span>`;
+    }
+    return commits.map(formatCommit).join('<br>');
+  }
+
+  function formatCommit(c) {
+    const hash = `<span class="git-hash">${escapeHtml(c.hash)}</span>`;
+    const author = `<span class="git-author">${escapeHtml(c.author)}</span>`;
+    const date = `<span class="git-date">${escapeHtml(humanDate(c.date))}</span>`;
+    const refs = (c.refs && c.refs.length > 0)
+      ? ' <span class="git-refs">(' +
+          c.refs.map(r => {
+            if (r === 'HEAD') return '<span class="git-head">HEAD</span>';
+            if (r.startsWith('tag:')) return `<span class="git-tag">${escapeHtml(r)}</span>`;
+            if (r === 'main' || r === 'master') return `<span class="git-branch">${escapeHtml(r)}</span>`;
+            return `<span class="git-ref">${escapeHtml(r)}</span>`;
+          }).join(', ') +
+        ')</span>'
+      : '';
+    const msg = `<span class="git-msg">${escapeHtml(c.msg)}</span>`;
+    return `${hash} ${date} ${author}${refs}<br>&nbsp;&nbsp;&nbsp;&nbsp;${msg}`;
+  }
+
+  function humanDate(iso) {
+    // ISO date -> "Mon May 12 2026" style, locale-independent
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    return `${days[d.getUTCDay()]} ${months[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2,'0')} ${d.getUTCFullYear()}`;
   }
 
   // ------------------------------ execute --------------------------------

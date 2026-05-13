@@ -1,0 +1,71 @@
+# Pseudo git log of my research life. Newest on top.
+# Each commit: hash (7 chars), date (ISO), author, msg, optional refs.
+# Refs render in (parens), like real `git log --decorate`.
+
+commits:
+  - hash: "a8f3c2d"
+    date: "2026-05-12"
+    author: "sumin1ee"
+    refs: ["HEAD", "main", "ECCV-2026"]
+    msg: "submit CamoSplat to ECCV 2026 — first author"
+
+  - hash: "7e1d40a"
+    date: "2026-05-08"
+    author: "sumin1ee"
+    refs: ["NeurIPS-2026"]
+    msg: "submit ReSMap to NeurIPS 2026 — first author"
+
+  - hash: "f29b3c4"
+    date: "2025-09-03"
+    author: "sumin1ee"
+    msg: "kick off online mapping with satellite priors (ReSMap)"
+
+  - hash: "c4e7a91"
+    date: "2025-06-12"
+    author: "sumin1ee"
+    refs: ["CVPR-2025-WAD"]
+    msg: "🥉 3rd place — Waymo Open Dataset E2E Driving Challenge (CVPR 2025)"
+
+  - hash: "2b8d05f"
+    date: "2025-03-02"
+    author: "sumin1ee"
+    refs: ["tag: ms-start"]
+    msg: "begin MS at Hanyang University · Automotive Engineering"
+
+  - hash: "9a14e7b"
+    date: "2025-02-21"
+    author: "sumin1ee"
+    refs: ["tag: bs-done"]
+    msg: "graduate BS — Automotive Engineering, Hanyang (GPA 4.03 / 4.5)"
+
+  - hash: "5dc0f82"
+    date: "2024-11-14"
+    author: "sumin1ee"
+    msg: "first 3DGS prototype on driving scenes — and so it begins"
+
+  - hash: "0e6b29d"
+    date: "2024-09-30"
+    author: "sumin1ee"
+    msg: "🏆 Capstone Design — top 3 of 30 teams, sole solo entry"
+
+  - hash: "1f47b6e"
+    date: "2024-05-16"
+    author: "sumin1ee"
+    msg: "first paper review on the blog: U-Net for biomedical segmentation"
+
+  - hash: "8c2a45f"
+    date: "2023-09-04"
+    author: "sumin1ee"
+    refs: ["tag: ircv-join"]
+    msg: "join IRCV Lab as an undergraduate researcher"
+
+  - hash: "3d9e7a0"
+    date: "2022-03-02"
+    author: "sumin1ee"
+    msg: "transfer to Hanyang University, Automotive Engineering"
+
+  - hash: "0000000"
+    date: "2019-03-04"
+    author: "sumin1ee"
+    refs: ["tag: 0.0"]
+    msg: "init: enroll at Inha University, Naval Architecture & Ocean Engineering"

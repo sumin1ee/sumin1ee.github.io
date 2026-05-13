@@ -41,5 +41,16 @@ layout: null
       {% endfor %}
     {% endfor %}
   ],
-  "now": {{ site.data.now.items | jsonify }}
+  "now": {{ site.data.now.items | jsonify }},
+  "git_log": [
+    {% for c in site.data.git_log.commits %}
+      {
+        "hash":   {{ c.hash | jsonify }},
+        "date":   {{ c.date | jsonify }},
+        "author": {{ c.author | jsonify }},
+        "msg":    {{ c.msg | jsonify }},
+        "refs":   {{ c.refs | default: empty | jsonify }}
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ]
 }

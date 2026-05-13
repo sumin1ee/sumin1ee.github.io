@@ -364,6 +364,21 @@ th { color: var(--ink-0); font-weight: 600; }
 .term-out a:hover { color: var(--accent-hover); border-color: var(--accent); }
 .term-out em { color: var(--accent); }
 
+/* git log inside the terminal — mimic `git log --decorate --pretty` */
+.git-hash   { color: var(--accent-warn); }
+.git-author { color: var(--accent); }
+.git-date   { color: var(--ink-3); }
+.git-msg    { color: var(--ink-1); }
+.git-refs   { color: var(--ink-2); }
+.git-head   { color: var(--ink-0); font-weight: 700; }
+.git-tag    { color: var(--accent-warn); }
+.git-branch { color: var(--accent); font-weight: 600; }
+.git-ref    { color: var(--accent); }
+
+/* tighten the line gaps so git log reads like a real one */
+.term-out { line-height: 1.55; }
+.term-out br { line-height: 1.4; }
+
 /* ---- Section heading -------------------------------------------------- */
 .section { margin: 90px 0; position: relative; }
 .section-head {
