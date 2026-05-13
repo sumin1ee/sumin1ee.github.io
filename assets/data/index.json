@@ -1,0 +1,45 @@
+---
+permalink: /assets/data/index.json
+layout: null
+---
+{
+  "site": {
+    "title": {{ site.title | jsonify }},
+    "tagline": {{ site.tagline | jsonify }},
+    "author": {
+      "name": {{ site.author.name | jsonify }},
+      "email": {{ site.author.email | jsonify }},
+      "github": {{ site.author.github | jsonify }},
+      "cv": {{ site.author.cv | jsonify }},
+      "affiliation": {{ site.author.affiliation | jsonify }},
+      "affiliation_url": {{ site.author.affiliation_url | jsonify }}
+    }
+  },
+  "posts": [
+    {% for p in site.posts %}
+      {
+        "title": {{ p.title | jsonify }},
+        "url": {{ p.url | relative_url | jsonify }},
+        "date": {{ p.date | date_to_xmlschema | jsonify }},
+        "tags": {{ p.tags | jsonify }}
+      }{% unless forloop.last %},{% endunless %}
+    {% endfor %}
+  ],
+  "reading": [
+    {% for g in site.data.reading.groups %}
+      {% for item in g.items %}
+        {
+          "group": {{ g.id | jsonify }},
+          "group_label": {{ g.label | jsonify }},
+          "title": {{ item.title | jsonify }},
+          "authors": {{ item.authors | default: "" | jsonify }},
+          "venue": {{ item.venue | default: "" | jsonify }},
+          "year": {{ item.year | default: "" | jsonify }},
+          "url": {{ item.url | jsonify }},
+          "note": {{ item.note | default: "" | jsonify }}
+        }{% unless forloop.last and forloop.parentloop.last %},{% endunless %}
+      {% endfor %}
+    {% endfor %}
+  ],
+  "now": {{ site.data.now.items | jsonify }}
+}
