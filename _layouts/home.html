@@ -78,9 +78,6 @@ layout: default
           <a href="{{ post.url | relative_url }}" class="post-link">
             <time class="post-date">{{ post.date | date: '%Y·%m·%d' }}</time>
             <span class="post-title">{{ post.title }}</span>
-            {% if post.categories.first %}
-              <span class="post-cat">{{ post.categories.first }}</span>
-            {% endif %}
           </a>
         </li>
       {% endfor %}

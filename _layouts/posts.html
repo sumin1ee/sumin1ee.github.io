@@ -22,7 +22,6 @@ layout: default
         <a href="{{ post.url | relative_url }}" class="archive-link">
           <time class="archive-date">{{ post.date | date: '%m·%d' }}</time>
           <span class="archive-name">{{ post.title }}</span>
-          {% if post.categories.first %}<span class="archive-cat">{{ post.categories.first }}</span>{% endif %}
         </a>
       </li>
     {% endfor %}

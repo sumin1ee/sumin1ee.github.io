@@ -401,12 +401,22 @@ th { color: var(--ink-0); font-weight: 600; }
   background: var(--accent-soft);
 }
 .reading-note { color: var(--ink-2); font-size: 0.88rem; margin: 8px 0 0; }
+.reading-list--full .reading-item { padding: 18px 20px; margin-bottom: 12px; }
+.reading-foot {
+  margin-top: 36px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--border);
+  text-align: center;
+  font-family: var(--f-mono);
+  font-size: 0.85rem;
+  color: var(--ink-3);
+}
 
 /* ---- /posts list (home) ---------------------------------------------- */
 .post-item { margin: 0; padding: 0; }
 .post-link {
   display: grid;
-  grid-template-columns: 110px 1fr auto;
+  grid-template-columns: 110px 1fr;
   gap: 16px; align-items: baseline;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
@@ -641,7 +651,7 @@ th { color: var(--ink-0); font-weight: 600; }
 .archive-item { margin: 0; }
 .archive-link {
   display: grid;
-  grid-template-columns: 80px 1fr auto;
+  grid-template-columns: 80px 1fr;
   gap: 16px; align-items: baseline;
   padding: 10px 14px;
   border-radius: var(--r-sm);
