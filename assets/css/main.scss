@@ -348,6 +348,8 @@ th { color: var(--ink-0); font-weight: 600; }
 .term-line { margin: 10px 0 0; color: var(--ink-1); }
 .term-out { margin: 2px 0 14px; padding-left: 20px; color: var(--ink-1); }
 .term-prompt { color: var(--accent); margin-right: 8px; font-weight: 700; }
+/* the ~/path segment of the prompt, shell-style */
+.term-cwd { color: var(--ink-0); font-weight: 600; }
 .term-name { color: var(--ink-0); font-weight: 600; }
 .term-out a { color: var(--accent); }
 .term-out a:hover { color: var(--accent-hover); }

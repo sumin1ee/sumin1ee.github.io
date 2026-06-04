@@ -10,7 +10,19 @@
   const input   = document.getElementById('term-input');
   const caret   = document.getElementById('term-caret');
   const mirror  = document.getElementById('term-mirror');
+  const cwdEl   = document.getElementById('term-cwd');
   if (!body || !input) return;
+
+  // ---- Virtual filesystem & current directory ----------------------------
+  // cwd is the path below home (~), e.g. [] = ~, ['reading'] = ~/reading,
+  // ['reading','nerf'] = ~/reading/nerf. The tree is derived from INDEX in
+  // listDir()/resolveDir() once the site index has loaded.
+  let cwd = [];
+
+  const homePath = () => '~' + (cwd.length ? '/' + cwd.join('/') : '');
+
+  // Sync both the live input prompt and (re)used by writePrompt().
+  const syncPrompt = () => { if (cwdEl) cwdEl.textContent = homePath(); };
 
   // Position the block caret right after the text the user has typed so it
   // blinks where they're editing, not at the far right of the line.
@@ -33,10 +45,13 @@
       '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
     }[c]));
 
-  const writePrompt = (cmd) => {
+  // Echo a command with the prompt that was active when it ran. Pass an
+  // explicit `at` path for intro lines (which run before cwd moves).
+  const writePrompt = (cmd, at) => {
     const line = document.createElement('p');
     line.className = 'term-line';
-    line.innerHTML = `<span class="term-prompt">$</span> ${escapeHtml(cmd)}`;
+    const where = at == null ? homePath() : at;
+    line.innerHTML = `<span class="term-prompt"><span class="term-cwd">${escapeHtml(where)}</span> $</span> ${escapeHtml(cmd)}`;
     history.appendChild(line);
   };
 
@@ -57,6 +72,80 @@
 
   const clear = () => { history.innerHTML = ''; };
 
+  // ------------------------------ filesystem -----------------------------
+  // Top-level directories under ~ (cv is an external link, not a dir).
+  const TOP_DIRS = ['about', 'now', 'reading', 'posts', 'contact'];
+
+  // List the entries at a given path (array form). Returns
+  // { dirs: [...], files: [{name, url, external}] } or null if the path is
+  // not a real directory.
+  function listDir(path) {
+    if (!INDEX) return null;
+
+    // ~  →  top-level dirs
+    if (path.length === 0) {
+      return { dirs: TOP_DIRS.slice(), files: [{ name: 'cv', url: INDEX.site.author.cv, external: true }] };
+    }
+
+    const head = path[0];
+
+    if (head === 'reading') {
+      const groups = INDEX.reading || [];
+      // ~/reading  →  one dir per group id
+      if (path.length === 1) {
+        const ids = [];
+        const seen = {};
+        groups.forEach((r) => { if (!seen[r.group]) { seen[r.group] = 1; ids.push(r.group); } });
+        return { dirs: ids, files: [] };
+      }
+      // ~/reading/<group>  →  the papers in that group as files
+      if (path.length === 2) {
+        const g = path[1];
+        const items = groups.filter((r) => r.group === g);
+        if (items.length === 0) return null;
+        return { dirs: [], files: items.map((r) => ({ name: r.title, url: r.url, external: true })) };
+      }
+      return null;
+    }
+
+    if (head === 'posts') {
+      if (path.length === 1) {
+        return { dirs: [], files: (INDEX.posts || []).map((p) => ({ name: p.title, url: p.url })) };
+      }
+      return null;
+    }
+
+    // about / now / contact are leaf dirs whose `cat` text is their listing.
+    if (path.length === 1 && (head === 'about' || head === 'now' || head === 'contact')) {
+      return { dirs: [], files: [], leaf: head };
+    }
+
+    return null;
+  }
+
+  // Resolve a `cd` target (relative to cwd) into a new path array, or null
+  // if it isn't a directory. Supports ., .., ~, /, and nested a/b segments.
+  function resolveDir(arg) {
+    let path;
+    let rest;
+    const a = arg.trim();
+
+    if (a === '' || a === '~' || a === '/') return [];
+    if (a.startsWith('~/')) { path = []; rest = a.slice(2); }
+    else if (a.startsWith('/')) { path = []; rest = a.slice(1); }
+    else { path = cwd.slice(); rest = a; }
+
+    const segs = rest.split('/').filter((s) => s.length > 0);
+    for (const seg of segs) {
+      if (seg === '.') continue;
+      if (seg === '..') { path.pop(); continue; }
+      const here = listDir(path);
+      if (!here || here.dirs.indexOf(seg) === -1) return null;
+      path.push(seg);
+    }
+    return path;
+  }
+
   // ------------------------------ commands -------------------------------
   const commands = {
     help: () => {
@@ -64,7 +153,8 @@
         ['help',           'show this help'],
         ['whoami',         'who runs this place'],
         ['pwd',            'print working directory'],
-        ['ls',             'list site sections'],
+        ['ls [dir]',       'list the current (or given) directory'],
+        ['cd <dir>',       'change directory — try cd reading, cd .., cd ~'],
         ['cat <file>',     'read a section: about, contact, now, affiliation'],
         ['find <pattern>', 'search posts + reading list (case-insensitive substring)'],
         ['git log',        'commit log of my research life'],
@@ -85,11 +175,46 @@
       `<span class="t-strong">${INDEX.site.author.name}</span> — MS researcher · vision-centric autonomous driving<br>` +
       `<span class="t-dim">${INDEX.site.author.affiliation}</span>`,
 
-    pwd: () => '/home/sumin1ee',
+    pwd: () => '/home/sumin1ee' + (cwd.length ? '/' + cwd.join('/') : ''),
 
-    ls: () => {
-      const items = ['about', 'now', 'reading', 'posts', 'contact', 'cv'];
-      return items.map((i) => `<span class="t-dir">${i}/</span>`).join('  ');
+    cd: (arg) => {
+      const target = (arg || '').trim();
+      const next = resolveDir(target);
+      if (next === null) {
+        return `<span class="t-err">cd: ${escapeHtml(target)}: No such directory</span>`;
+      }
+      // A leaf like ~/about has no children to enter — cat it instead.
+      const here = listDir(next);
+      if (here && here.leaf) {
+        return `<span class="t-dim">${escapeHtml('~/' + next.join('/'))} is a leaf — try </span>` +
+               `<span class="t-cmd">cat ${escapeHtml(here.leaf)}</span>`;
+      }
+      cwd = next;
+      syncPrompt();
+      return '';
+    },
+
+    ls: (arg) => {
+      // ls with an argument lists that dir without moving into it.
+      const path = arg && arg.trim() ? resolveDir(arg) : cwd;
+      if (path === null) {
+        return `<span class="t-err">ls: ${escapeHtml(arg.trim())}: No such directory</span>`;
+      }
+      const d = listDir(path);
+      if (!d) return `<span class="t-err">ls: cannot access that path</span>`;
+      if (d.leaf) {
+        return `<span class="t-dim">(leaf — </span><span class="t-cmd">cat ${escapeHtml(d.leaf)}</span><span class="t-dim">)</span>`;
+      }
+      const dirs = d.dirs.map((n) => `<span class="t-dir">${escapeHtml(n)}/</span>`);
+      const files = d.files.map((f) =>
+        f.external
+          ? `<a href="${f.url}" target="_blank" rel="noopener">${escapeHtml(f.name)}</a>`
+          : `<a href="${f.url}">${escapeHtml(f.name)}</a>`
+      );
+      const all = dirs.concat(files);
+      if (all.length === 0) return `<span class="t-dim">(empty)</span>`;
+      // Papers/posts can be long titles — one per line; short dir lists inline.
+      return d.files.length > 0 ? all.join('<br>') : all.join('  ');
     },
 
     cat: (arg) => {
@@ -316,7 +441,7 @@
       const all = Array.from(new Set(COMMAND_NAMES())).sort();
       // On an empty line, only advertise the documented commands (skip the
       // easter eggs); when there's a prefix, complete against everything.
-      const documented = ['help', 'whoami', 'pwd', 'ls', 'cat', 'find', 'git', 'open', 'theme', 'clear', 'date'];
+      const documented = ['help', 'whoami', 'pwd', 'ls', 'cd', 'cat', 'find', 'git', 'open', 'theme', 'clear', 'date'];
       const pool = frag === '' ? documented.slice().sort() : all;
       const cands = frag === '' ? pool : pool.filter((n) => n.startsWith(frag));
       return { candidates: cands, replaceFrom: lead.length, isCommand: true };
@@ -325,11 +450,29 @@
     // Completing an argument. The command is parts[0]; the fragment is the
     // last token (which is '' if the input ends with a space).
     const name = parts[0].toLowerCase();
-    const pool = ARG_CANDIDATES[name];
-    if (!pool) return { candidates: [], replaceFrom: value.length };
-
     const endsWithSpace = /\s$/.test(value);
     const frag = endsWithSpace ? '' : parts[parts.length - 1].toLowerCase();
+
+    // cd / ls complete against the directories under the current dir (or under
+    // the parent of a partially-typed `a/b` path).
+    let pool;
+    if (name === 'cd' || name === 'ls') {
+      const slash = frag.lastIndexOf('/');
+      const dirPrefix = slash === -1 ? '' : frag.slice(0, slash + 1); // keep trailing /
+      const base = slash === -1 ? frag : frag.slice(slash + 1);
+      const at = dirPrefix ? resolveDir(dirPrefix) : cwd;
+      const here = at ? listDir(at) : null;
+      const dirs = here ? here.dirs.slice() : [];
+      const matched = base === '' ? dirs : dirs.filter((d) => d.toLowerCase().startsWith(base));
+      // Re-attach the dirPrefix so completion fills the full token.
+      const cands = matched.map((d) => dirPrefix + d).sort();
+      const replaceFrom = endsWithSpace ? value.length : value.length - frag.length;
+      return { candidates: cands, replaceFrom };
+    }
+
+    pool = ARG_CANDIDATES[name];
+    if (!pool) return { candidates: [], replaceFrom: value.length };
+
     const cands = frag === '' ? pool.slice() : pool.filter((c) => c.startsWith(frag));
     // Where the fragment begins in the original string.
     const replaceFrom = endsWithSpace ? value.length : value.length - frag.length;
@@ -390,7 +533,7 @@
       { type: 'out', html: commands.cat('affiliation') },
       { type: 'cmd', text: 'ls' },
       { type: 'out', html: commands.ls() },
-      { type: 'tip', text: 'type <span class="t-cmd">help</span>, then try <span class="t-cmd">find gaussian</span> or <span class="t-cmd">open reading</span>.' },
+      { type: 'tip', text: 'type <span class="t-cmd">help</span>, then try <span class="t-cmd">cd reading</span>, <span class="t-cmd">ls</span>, or <span class="t-cmd">find gaussian</span>.' },
     ];
     let i = 0;
     const tick = () => {
@@ -406,6 +549,7 @@
   }
 
   // ------------------------------ wiring ---------------------------------
+  syncPrompt();
   fetch('/assets/data/index.json')
     .then((r) => r.json())
     .then((data) => {
