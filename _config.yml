@@ -28,6 +28,7 @@ kramdown:
   input: GFM
   syntax_highlighter: rouge
   toc_levels: 2..3
+  math_engine: false   # leave $$...$$ untouched; MathJax (loaded per-post) renders it
 
 paginate: 8
 paginate_path: "/page:num/"
