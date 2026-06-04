@@ -404,9 +404,10 @@ th { color: var(--ink-0); font-weight: 600; }
   pointer-events: none;
   font-size: 0;                 /* hide the literal ▍ glyph; we draw a box */
 }
-/* only blink while the input is focused */
-.term-input:not(:focus) ~ #term-caret { opacity: 0.35; animation: none; }
-.term-input:focus ~ #term-caret { animation: blink 1.1s steps(2) infinite; }
+/* blink only while focused; JS toggles .is-blinking on focus/blur so this
+   doesn't depend on caret being a later sibling of the input. */
+#term-caret { opacity: 0.35; animation: none; }
+#term-caret.is-blinking { opacity: 1; animation: blink 1.1s steps(2) infinite; }
 
 .term-out .t-cmd     { color: var(--accent); }
 .term-out .t-strong  { color: var(--ink-0); font-weight: 600; }

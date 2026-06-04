@@ -435,10 +435,17 @@
     input.addEventListener(ev, syncCaret)
   );
 
+  // Blink the caret only while the input is focused. Toggling a class is more
+  // robust than a CSS sibling selector (which breaks if the DOM order shifts).
+  const setBlink = (on) => { if (caret) caret.classList.toggle('is-blinking', on); };
+  input.addEventListener('focus', () => setBlink(true));
+  input.addEventListener('blur',  () => setBlink(false));
+  setBlink(document.activeElement === input);
+
   // click anywhere on the terminal -> focus input
   document.getElementById('terminal').addEventListener('click', (e) => {
     if (window.getSelection().toString().length === 0) input.focus();
   });
   // auto-focus on load (but not aggressively if user is scrolling)
-  setTimeout(() => { input.focus(); syncCaret(); }, 600);
+  setTimeout(() => { input.focus(); syncCaret(); setBlink(document.activeElement === input); }, 600);
 })();
