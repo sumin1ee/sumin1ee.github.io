@@ -341,6 +341,39 @@ groups:
         year: 2026
         url: "https://arxiv.org/abs/2601.10512"
 
+  - id: topology
+    label: Lane Topology Reasoning
+    blurb: "Beyond detecting lanes — reasoning about how they connect to each other and to traffic elements. The graph that makes a map drivable."
+    items:
+      - title: "TopoNet: Graph-based Topology Reasoning for Driving Scenes"
+        authors: "Li, Chen, Wang, Y. Li, Yang, Geng, Jiang, Y. Wang, Xu, Xu, Yan, Luo, H. Li"
+        venue: "arXiv"
+        year: 2023
+        url: "https://arxiv.org/abs/2304.05277"
+        note: "First end-to-end framework to reason jointly about lane-lane and lane-traffic topology via a scene graph network. The entry point to this section."
+
+      - title: "OpenLane-V2: A Topology Reasoning Benchmark for Scene Understanding in Autonomous Driving"
+        authors: "Wang et al."
+        venue: "NeurIPS"
+        year: 2023
+        award: "Datasets & Benchmarks"
+        url: "https://arxiv.org/abs/2304.10440"
+        note: "The benchmark TopoNet introduced — centerline + traffic element detection plus the OLS topology metric."
+
+      - title: "TopoMLP: A Simple yet Strong Pipeline for Driving Topology Reasoning"
+        authors: "Wu et al."
+        venue: "ICLR"
+        year: 2024
+        url: "https://arxiv.org/abs/2310.06753"
+        note: "Shows that strong detection + a simple MLP topology head beats elaborate graph reasoning."
+
+      - title: "LaneSegNet: Map Learning with Lane Segment Perception for Autonomous Driving"
+        authors: "Li et al."
+        venue: "ICLR"
+        year: 2024
+        url: "https://arxiv.org/abs/2312.16108"
+        note: "Lane segment as the unit of map learning — geometry and topology in one representation."
+
   - id: e2ead
     label: End-to-End Autonomous Driving
     blurb: "Planning-oriented stacks where perception, prediction, and planning are differentiable and learned jointly."

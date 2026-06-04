@@ -17,6 +17,12 @@ layout: default
           {% for t in page.tags %}<span class="chip chip--mono">#{{ t }}</span>{% endfor %}
         </div>
       {% endif %}
+      {% if page.bilingual %}
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang="ko">KOR</button>
+          <button type="button" class="lang-btn" data-lang="en">ENG</button>
+        </div>
+      {% endif %}
     </header>
 
     <div class="post-grid">

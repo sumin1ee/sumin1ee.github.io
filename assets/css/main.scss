@@ -274,6 +274,37 @@ th { color: var(--ink-0); font-weight: 600; }
 :root[data-theme="light"] .theme-toggle .icon-sun  { display: inline; }
 :root[data-theme="light"] .theme-toggle .icon-moon { display: none; }
 
+/* ---- Language toggle (KOR / ENG) on post pages ------------------------- */
+.lang-toggle {
+  display: inline-flex;
+  margin-top: 16px;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+}
+.lang-btn {
+  font-family: var(--f-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 4px 12px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  transition: color .2s ease, background .2s ease;
+}
+.lang-btn:hover { color: var(--ink-0); }
+.lang-btn.is-active {
+  background: var(--surface-strong);
+  color: var(--accent);
+}
+/* No-JS fallback: both blocks remain visible (hidden attr only set by JS). */
+.lang-block[hidden] { display: none; }
+
 @media (max-width: 720px) {
   .topnav { gap: 10px; padding: 8px 10px 8px 12px; }
   .topnav-links { gap: 0; font-size: 0.72rem; }
