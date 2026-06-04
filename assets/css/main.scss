@@ -1319,8 +1319,27 @@ th { color: var(--ink-0); font-weight: 600; }
 .footer-right a:hover { color: var(--accent); border-bottom: none; }
 .footer-right i { margin-right: 4px; font-size: 0.85em; }
 
+@media (max-width: 720px) {
+  /* tighter side padding + less top gap so the post fills small screens */
+  .shell { padding: 0 18px; }
+  .post-shell, .archive-shell, .page-shell, .page { padding-top: 80px; padding-bottom: 56px; }
+  .post-head { margin-bottom: 26px; }
+  .post-title { font-size: clamp(1.7rem, 7vw, 2.2rem); line-height: 1.12; }
+  .post-subtitle { font-size: 1.02rem; }
+  .post-content { font-size: 1rem; line-height: 1.72; }
+  .post-content h2 { font-size: 1.45rem; margin-top: 2.2rem; padding-top: 1.1rem; }
+  .post-content h3 { font-size: 1.18rem; }
+  .post-content h4 { font-size: 1.02rem; }
+}
+
 @media (max-width: 600px) {
   .footer-inner { flex-direction: column; gap: 12px; }
+  .shell { padding: 0 14px; }
+  .post-shell, .archive-shell, .page-shell, .page { padding-top: 72px; }
+  .post-title { font-size: clamp(1.55rem, 8vw, 2rem); }
+  /* tags + lang toggle wrap comfortably instead of overflowing */
+  .chip-row { gap: 5px; }
+  .chip--mono { font-size: 0.68rem; padding: 4px 9px; }
 }
 
 /* ---- Print ------------------------------------------------------------ */
