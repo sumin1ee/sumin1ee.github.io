@@ -9,8 +9,11 @@ Falls back gracefully if the data file is missing (first-ever build).
   {%- assign cell  = 12 -%}
   {%- assign gap   = 3 -%}
   {%- assign cw    = cell | plus: gap -%}
-  {%- assign width = weeks.size | times: cw -%}
-  {%- assign height = cell | times: 7 | plus: gap | times: 6 | plus: 6 -%}
+  {%- assign width = weeks.size | times: cw | minus: gap -%}
+  {%- comment -%} 7 rows of cells + 6 inter-row gaps = 7*cell + 6*gap {%- endcomment -%}
+  {%- assign rows_h = cell | times: 7 -%}
+  {%- assign gaps_h = gap | times: 6 -%}
+  {%- assign height = rows_h | plus: gaps_h -%}
 
 <div class="contrib-wrap">
   <header class="contrib-head">
