@@ -35,8 +35,11 @@
   --shadow-1: 0 1px 0 rgba(255,255,255,0.03) inset, 0 10px 30px -14px rgba(0,0,0,0.55);
   --shadow-2: 0 1px 0 rgba(255,255,255,0.05) inset, 0 28px 70px -24px rgba(0,0,0,0.65);
 
-  --code-bg: #11131A;
-  --code-border: rgba(255,255,255,0.08);
+  --code-bg: #0d1117;
+  --code-border: #30363d;
+  --code-ink: #f0883e;   /* inline code text — warm orange */
+  --prose: #E8EAEE;       /* body prose — bright, a hair below bold */
+  --prose-strong: #FFFFFF;/* bold pops by being brighter */
 }
 
 :root[data-theme="light"] {
@@ -65,8 +68,11 @@
   --shadow-1: 0 1px 0 rgba(255,255,255,0.6) inset, 0 8px 24px -16px rgba(15,18,30,0.25);
   --shadow-2: 0 1px 0 rgba(255,255,255,0.7) inset, 0 24px 60px -30px rgba(15,18,30,0.30);
 
-  --code-bg: #F4F5F9;
-  --code-border: rgba(15,18,30,0.10);
+  --code-bg: #f6f8fa;
+  --code-border: #d1d9e0;
+  --code-ink: #cf222e;   /* inline code text — deep red */
+  --prose: #2A2E3C;       /* body prose */
+  --prose-strong: #07090F;/* bold darker than body */
 }
 
 :root {
@@ -81,7 +87,9 @@
 /* ---- Reset & base ----------------------------------------------------- */
 *, *::before, *::after { box-sizing: border-box; }
 html, body { margin:0; padding:0; }
-html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+/* Horizontal-overflow guard lives on <html>, NOT <body>: putting it on body
+   makes body the scroll container and kills position:sticky in the page. */
+html { scroll-behavior: smooth; scroll-padding-top: 90px; overflow-x: clip; }
 
 body {
   background: var(--bg-0);
@@ -90,7 +98,6 @@ body {
   font-feature-settings: "kern","liga","ss01","tnum";
   font-size: 16px;
   line-height: 1.65;
-  overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   transition: background-color .35s ease, color .35s ease;
 }
@@ -115,15 +122,17 @@ code, pre, kbd, samp {
   font-feature-settings: "calt", "liga";
 }
 
-/* inline code */
+/* inline code — distinct accent color so identifiers pop out of prose */
 :not(pre) > code {
   background: var(--code-bg);
   border: 1px solid var(--code-border);
-  padding: 2px 6px;
-  border-radius: 5px;
-  font-size: 0.88em;
-  color: var(--ink-0);
+  padding: 1px 6px;
+  border-radius: var(--r-sm);
+  font-size: 0.86em;
+  color: var(--code-ink);            /* dark: warm orange · light: deep red */
+  word-break: break-word;
 }
+.post-content a code { color: inherit; }
 
 pre {
   background: var(--code-bg);
@@ -137,54 +146,140 @@ pre {
 }
 pre code { background: none; border: none; padding: 0; color: var(--ink-0); }
 
-/* ---- Syntax highlighting (Rouge token classes) ----------------------- */
-/* Base + comments */
-.highlight, pre.highlight { color: var(--ink-0); }
+/* ---- Syntax highlighting (Rouge) — GitHub theme ----------------------- */
+/* Dark = github-dark; Light override below = github-light. */
+.highlight, pre.highlight { color: #e6edf3; }                                /* base */
 .highlight .c, .highlight .c1, .highlight .cm, .highlight .cs,
-.highlight .cd, .highlight .cp { color: var(--ink-2); font-style: italic; }   /* comments */
-/* Keywords / operators */
+.highlight .cd, .highlight .cp { color: #8b949e; font-style: italic; }       /* comment */
 .highlight .k, .highlight .kc, .highlight .kd, .highlight .kn,
-.highlight .kp, .highlight .kr, .highlight .kt { color: #C792EA; }            /* keyword (purple) */
-.highlight .o, .highlight .ow { color: #89DDFF; }                            /* operator */
-/* Names */
-.highlight .n  { color: var(--ink-0); }                                      /* plain name */
-.highlight .nf, .highlight .fm { color: #82AAFF; }                           /* function (blue) */
-.highlight .nc, .highlight .nn { color: #FFCB6B; }                           /* class / namespace (yellow) */
-.highlight .nb, .highlight .bp { color: var(--accent); }                     /* builtin (mint) */
-.highlight .nd { color: #F78C6C; }                                           /* decorator */
-.highlight .na, .highlight .nv, .highlight .vc, .highlight .vg, .highlight .vi { color: #F07178; }
-/* Literals */
+.highlight .kp, .highlight .kr, .highlight .kt { color: #ff7b72; }           /* keyword (red) */
+.highlight .o, .highlight .ow { color: #ff7b72; }                            /* operator */
+.highlight .n  { color: #e6edf3; }                                           /* name */
+.highlight .nf, .highlight .fm { color: #d2a8ff; }                           /* function (purple) */
+.highlight .nc, .highlight .nn { color: #ffa657; }                           /* class/namespace (orange) */
+.highlight .nb, .highlight .bp { color: #79c0ff; }                           /* builtin (blue) */
+.highlight .nd { color: #d2a8ff; }                                           /* decorator */
+.highlight .na, .highlight .nv, .highlight .vc, .highlight .vg, .highlight .vi { color: #79c0ff; }
 .highlight .s, .highlight .s1, .highlight .s2, .highlight .sb, .highlight .sc,
 .highlight .sd, .highlight .se, .highlight .sh, .highlight .si, .highlight .sx,
-.highlight .sr, .highlight .ss { color: #C3E88D; }                           /* string (green) */
+.highlight .sr, .highlight .ss { color: #a5d6ff; }                           /* string (light blue) */
 .highlight .m, .highlight .mi, .highlight .mf, .highlight .mh,
-.highlight .mo, .highlight .il { color: #F78C6C; }                           /* number (orange) */
-.highlight .p, .highlight .pi { color: var(--ink-1); }                       /* punctuation */
-.highlight .err { color: #FF5370; }
+.highlight .mo, .highlight .il { color: #79c0ff; }                           /* number (blue) */
+.highlight .p, .highlight .pi { color: #e6edf3; }                            /* punctuation */
+.highlight .err { color: #f85149; }
 
-/* Light theme: darker token colors readable on a light code background */
+/* Light theme — github-light */
+:root[data-theme="light"] .highlight, :root[data-theme="light"] pre.highlight { color: #1f2328; }
+:root[data-theme="light"] .highlight .c, :root[data-theme="light"] .highlight .c1,
+:root[data-theme="light"] .highlight .cm, :root[data-theme="light"] .highlight .cd,
+:root[data-theme="light"] .highlight .cp { color: #6e7781; }
 :root[data-theme="light"] .highlight .k,
 :root[data-theme="light"] .highlight .kc, :root[data-theme="light"] .highlight .kd,
 :root[data-theme="light"] .highlight .kn, :root[data-theme="light"] .highlight .kp,
-:root[data-theme="light"] .highlight .kr, :root[data-theme="light"] .highlight .kt { color: #9C27B0; }
-:root[data-theme="light"] .highlight .o, :root[data-theme="light"] .highlight .ow { color: #0288D1; }
-:root[data-theme="light"] .highlight .nf, :root[data-theme="light"] .highlight .fm { color: #1565C0; }
-:root[data-theme="light"] .highlight .nc, :root[data-theme="light"] .highlight .nn { color: #B26A00; }
-:root[data-theme="light"] .highlight .nd { color: #D84315; }
+:root[data-theme="light"] .highlight .kr, :root[data-theme="light"] .highlight .kt,
+:root[data-theme="light"] .highlight .o, :root[data-theme="light"] .highlight .ow { color: #cf222e; }
+:root[data-theme="light"] .highlight .nf, :root[data-theme="light"] .highlight .fm,
+:root[data-theme="light"] .highlight .nd { color: #8250df; }
+:root[data-theme="light"] .highlight .nc, :root[data-theme="light"] .highlight .nn { color: #953800; }
+:root[data-theme="light"] .highlight .nb, :root[data-theme="light"] .highlight .bp,
+:root[data-theme="light"] .highlight .na, :root[data-theme="light"] .highlight .nv { color: #0550ae; }
 :root[data-theme="light"] .highlight .s, :root[data-theme="light"] .highlight .s1,
-:root[data-theme="light"] .highlight .s2 { color: #388E3C; }
+:root[data-theme="light"] .highlight .s2 { color: #0a3069; }
 :root[data-theme="light"] .highlight .m, :root[data-theme="light"] .highlight .mi,
-:root[data-theme="light"] .highlight .mf, :root[data-theme="light"] .highlight .il { color: #D84315; }
+:root[data-theme="light"] .highlight .mf, :root[data-theme="light"] .highlight .il { color: #0550ae; }
+:root[data-theme="light"] .highlight .n, :root[data-theme="light"] .highlight .p { color: #1f2328; }
 
+/* ---- Fenced code block: frame + small language tag -------------------- */
+/* IMPORTANT: scope to div.highlighter-rouge only. Rouge also puts
+   .highlighter-rouge on INLINE code (<code class="language-plaintext
+   highlighter-rouge">), so an unscoped rule would frame + label inline code. */
+.post-content div.highlighter-rouge {
+  position: relative;
+  margin: 1.5rem 0;
+  border: 1px solid var(--code-border);
+  border-radius: var(--r-md);
+  background: var(--code-bg);
+  overflow: hidden;
+}
+.post-content div.highlighter-rouge .highlight { margin: 0; background: none; }
+.post-content div.highlighter-rouge pre {
+  margin: 0; border: none; border-radius: 0; background: none;
+  padding: 14px 18px 16px; scrollbar-width: thin;
+}
+.post-content div.highlighter-rouge::before {
+  content: "code";
+  display: block;
+  font-family: var(--f-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 7px 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.post-content div.language-python::before, .post-content div.language-py::before { content: "python"; }
+.post-content div.language-bash::before, .post-content div.language-shell::before { content: "shell"; }
+.post-content div.language-json::before { content: "json"; }
+.post-content div.language-yaml::before { content: "yaml"; }
+.post-content div.language-plaintext::before { content: "text"; }
+.post-content div.highlighter-rouge pre::-webkit-scrollbar { height: 7px; }
+.post-content div.highlighter-rouge pre::-webkit-scrollbar-thumb {
+  background: var(--border-strong); border-radius: 999px;
+}
+
+/* ---- MathJax: wide display equations (5×5 matrices) scroll, not overflow */
+mjx-container[display="true"] {
+  overflow-x: auto; overflow-y: hidden; max-width: 100%;
+  margin: 1.5rem 0; padding: 4px 2px 8px; scrollbar-width: thin;
+}
+mjx-container[display="true"]::-webkit-scrollbar { height: 6px; }
+mjx-container[display="true"]::-webkit-scrollbar-thumb {
+  background: var(--border-strong); border-radius: 999px;
+}
+mjx-container:not([display="true"]) { overflow: visible; }
+
+/* ---- Blockquote / paper-info card -------------------------------------
+   Kramdown renders the authored "> title" + "> > Authors/Link/Code" run as a
+   stack of touching blockquotes. Style the run to read as ONE calm card. */
 blockquote {
   border-left: 2px solid var(--accent);
-  padding: 4px 16px;
-  margin: 1.2rem 0;
+  padding: 10px 18px;
+  margin: 1.4rem 0;
   color: var(--ink-1);
-  background: var(--accent-soft);
-  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: var(--surface);                  /* calm surface, not loud accent fill */
+  border-radius: 0 var(--r-md) var(--r-md) 0;
 }
+blockquote p { margin: 0; }
+blockquote p + p { margin-top: 0.45rem; }
 blockquote p:last-child { margin-bottom: 0; }
+
+/* Fuse a run of consecutive blockquotes (the paper-info stack) into one card */
+.post-content blockquote + blockquote {
+  margin-top: 0;
+  border-top: 1px solid var(--border);
+  border-top-right-radius: 0;
+}
+.post-content blockquote:has(+ blockquote) {
+  margin-bottom: 0;
+  border-bottom-right-radius: 0;
+}
+/* Title row (the single-level "> " line): display font, brightest ink */
+.post-content blockquote > p:first-child { font-family: var(--f-display); font-size: 1.02rem; }
+.post-content blockquote > p:first-child strong { color: var(--ink-0); font-weight: 600; }
+
+/* Meta rows = nested "> >" blockquotes → demote to quiet metadata rows */
+.post-content blockquote blockquote {
+  border-left: none; background: none; margin: 0; padding: 2px 0 0;
+  border-radius: 0; color: var(--ink-2);
+}
+.post-content blockquote blockquote p { font-family: var(--f-sans); font-size: 0.88rem; line-height: 1.55; }
+.post-content blockquote blockquote strong { font-weight: 500; color: var(--ink-1); }
+/* auto-linked arxiv/github URLs → mono mint, wrap on mobile */
+.post-content blockquote blockquote a, .post-content blockquote a {
+  font-family: var(--f-mono); font-size: 0.82rem; color: var(--accent);
+  border-bottom: none; word-break: break-all;
+}
 
 table {
   width: 100%;
@@ -873,10 +968,11 @@ th { color: var(--ink-0); font-weight: 600; }
 }
 
 /* ---- Post page -------------------------------------------------------- */
-.post-shell { max-width: 1080px; }
+.post-shell { max-width: 1140px; }
+/* Header aligns to the SAME left edge + width as the body column below it. */
 .post-head {
   max-width: 760px;
-  margin: 0 auto 36px;
+  margin: 0 0 36px;
 }
 .post-meta {
   font-family: var(--f-mono);
@@ -906,18 +1002,23 @@ th { color: var(--ink-0); font-weight: 600; }
   margin-bottom: 16px;
 }
 
+/* Body (760px, left-aligned under the header) + nav pushed to the right gutter.
+   The 1fr spacer between them keeps nav far right while the prose stays put. */
 .post-grid {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 56px;
+  grid-template-columns: minmax(0, 760px) minmax(40px, 1fr) 200px;
+  gap: 0;
   align-items: start;
 }
-@media (max-width: 900px) {
-  .post-grid { grid-template-columns: 1fr; gap: 24px; }
-  .toc-aside { display: none; }
+@media (max-width: 1080px) {
+  .post-grid { grid-template-columns: 1fr; }
+  .toc-aside { display: none; }                  /* no nav on mobile/tablet */
 }
 
 .toc-aside {
+  grid-column: 3;                 /* far-right gutter, past the 1fr spacer */
+  align-self: stretch;            /* span the full body height so sticky has room */
+  height: 100%;
   font-family: var(--f-mono);
   font-size: 0.82rem;
 }
@@ -952,35 +1053,112 @@ th { color: var(--ink-0); font-weight: 600; }
 .toc a.lvl-3.is-active { padding-left: 20px; }
 
 .post-content {
+  grid-column: 1;                 /* left column, aligned under the header */
   max-width: 760px;
-  margin: 0 auto;
+  margin: 0;
   font-size: 1.04rem;
   line-height: 1.78;
-  color: var(--ink-0);
+  color: var(--prose);            /* body: bright grey, still very readable */
 }
+/* bold stands out from body by lightness, not just weight */
+.post-content strong { color: var(--prose-strong); font-weight: 600; }
+/* Headings authored as **bold** → neutralize global strong so the level
+   hierarchy (size/weight/color below) isn't flattened. */
+.post-content h2 strong, .post-content h3 strong, .post-content h4 strong {
+  font-weight: inherit; color: inherit;
+}
+/* h2 — top hairline + display size: marks a major section */
 .post-content h2 {
   font-family: var(--f-display);
-  font-size: 1.55rem;
+  font-size: 1.7rem;
   font-weight: 600;
-  margin: 2.4rem 0 0.9rem;
-  padding-top: 0.4rem;
+  letter-spacing: -0.01em;
+  color: var(--ink-0);
+  margin: 3rem 0 1rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--border);
 }
+.post-content h2:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+/* h3 — mint left bar */
 .post-content h3 {
   font-family: var(--f-display);
-  font-size: 1.25rem;
-  font-weight: 500;
-  margin: 1.6rem 0 0.7rem;
+  font-size: 1.28rem;
+  font-weight: 600;
+  color: var(--ink-0);
+  margin: 2.2rem 0 0.7rem;
+  padding-left: 12px;
+  border-left: 3px solid var(--accent);
 }
+/* h4 — small mint tick label, dimmer; used heavily for SGNN subsections */
 .post-content h4 {
   font-family: var(--f-display);
-  font-size: 1.05rem;
-  margin: 1.2rem 0 0.5rem;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: var(--ink-0);
+  margin: 1.8rem 0 0.5rem;
+}
+.post-content h4::before {
+  content: "";
+  display: inline-block;
+  width: 7px; height: 7px;
+  margin-right: 9px;
+  border-radius: 2px;
+  background: var(--accent);
+  vertical-align: middle;
+  opacity: 0.85;
 }
 .post-content p, .post-content ul, .post-content ol { margin-bottom: 1rem; }
 .post-content ul, .post-content ol { padding-left: 20px; }
-.post-content img { border-radius: var(--r-md); margin: 1.4rem 0; }
-.post-content a { color: var(--accent); border-bottom: 1px solid var(--accent-soft); }
+
+/* ---- Figures: authored as <div style="text-align: center;">
+   <img …> <br> <a …><b>caption</b></a> </div>
+   img{display:block} makes text-align:center a no-op → margin-inline:auto centers. */
+.post-content div[style*="center"] { margin: 2.4rem auto; }
+.post-content div[style*="center"] img {
+  display: block;
+  margin-inline: auto;
+  margin-block: 0;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface);     /* mats transparent PNGs on dark bg */
+  padding: 6px;
+  box-shadow: var(--shadow-1);
+}
+.post-content div[style*="center"] br { display: none; }   /* margins own spacing */
+/* caption = <a><b>…</b></a>: quiet mono label with a subtle ↗ link cue */
+.post-content div[style*="center"] a {
+  display: inline-block;
+  max-width: 640px;
+  margin: 0.85rem auto 0;
+  border-bottom: none;
+}
+.post-content div[style*="center"] a > b {
+  display: block;
+  font-family: var(--f-mono);
+  font-weight: 400;
+  font-size: 0.8rem;
+  line-height: 1.55;
+  color: var(--ink-2);
+  transition: color .2s ease;
+}
+.post-content div[style*="center"] a > b::after {
+  content: " ↗"; font-size: 0.72em; color: var(--ink-3); transition: color .2s ease;
+}
+.post-content div[style*="center"] a:hover > b,
+.post-content div[style*="center"] a:hover > b::after { color: var(--accent); }
+/* very wide figure (architecture): scroll on small screens, don't shrink to blur */
+@media (max-width: 700px) {
+  .post-content div[style*="center"] { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .post-content div[style*="center"] img[style*="width: 100%"] { min-width: 560px; }
+}
+
+.post-content a {
+  color: var(--accent);
+  border-bottom: 1px solid var(--accent-soft);
+}
 .post-content a:hover { color: var(--accent-hover); border-color: var(--accent); }
+/* caption / image links opt out of the underline */
+.post-content div[style*="center"] a { border-bottom: none; }
 
 .post-foot { margin-top: 56px; }
 .back-link {

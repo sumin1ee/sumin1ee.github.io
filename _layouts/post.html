@@ -26,20 +26,20 @@ layout: default
     </header>
 
     <div class="post-grid">
+      <div class="post-content">
+        {{ content }}
+      </div>
+
       {%- if page.toc != false -%}
       <aside class="toc-aside" aria-label="Table of contents">
         <div class="toc-sticky">
-          <p class="toc-label">contents</p>
+          <p class="toc-label">on this page</p>
           <nav class="toc" id="toc-target" aria-label="In-page navigation">
             <!-- populated by post.js from the rendered headings -->
           </nav>
         </div>
       </aside>
       {%- endif -%}
-
-      <div class="post-content">
-        {{ content }}
-      </div>
     </div>
 
     <footer class="post-foot">

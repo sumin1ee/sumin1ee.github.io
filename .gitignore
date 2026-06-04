@@ -5,7 +5,11 @@ Gemfile.lock
 
 # Jekyll cache
 .jekyll-cache
+.jekyll-metadata
 _site
+
+# Claude Code session data
+.claude
 
 # Build-time data
 _data/contributions.json

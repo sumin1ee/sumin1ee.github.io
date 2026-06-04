@@ -13,6 +13,9 @@
   }
 
   const content = document.querySelector('.post-content');
+  // Declared up here (not after applyLang) so the initial applyLang→buildToc
+  // call below doesn't hit a temporal-dead-zone ReferenceError on tocEl.
+  const tocEl = document.getElementById('toc-target');
 
   // ---- Language toggle (KOR / ENG) ----------------------------------------
   // A bilingual post wraps each language in <div class="lang-block" lang="ko|en">.
@@ -60,8 +63,6 @@
   }
 
   // ---- TOC: build from h2/h3 in the visible content -----------------------
-  const tocEl = document.getElementById('toc-target');
-
   function buildToc() {
     if (!tocEl || !content) return;
 
