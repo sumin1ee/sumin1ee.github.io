@@ -129,4 +129,10 @@
 
   // For non-bilingual posts, build the TOC once on load.
   if (!langBlocks.length) buildToc();
+
+  // MathJax can rewrite heading text while typesetting; rebuild the TOC once
+  // it finishes so headings with inline math still slug + link correctly.
+  if (window.MathJax && window.MathJax.startup && window.MathJax.startup.promise) {
+    window.MathJax.startup.promise.then(buildToc).catch(function () {});
+  }
 })();
