@@ -69,7 +69,7 @@
         ['find <pattern>', 'search posts + reading list (case-insensitive substring)'],
         ['git log',        'commit log of my research life'],
         ['open <name>',    'jump to a section in this browser tab'],
-        ['theme',          'toggle dark / light mode'],
+        ['theme [mode]',   'toggle, or set: theme dark | theme light'],
         ['clear',          'clear the terminal'],
         ['date',           'current server time'],
       ];
@@ -180,10 +180,25 @@
       return '';
     },
 
-    theme: () => {
+    theme: (arg) => {
       const root = document.documentElement;
       const cur = root.getAttribute('data-theme') || 'dark';
-      const next = cur === 'dark' ? 'light' : 'dark';
+      const want = (arg || '').trim().toLowerCase();
+
+      // `theme` with no argument toggles; `theme dark|light` sets explicitly.
+      let next;
+      if (!want) {
+        next = cur === 'dark' ? 'light' : 'dark';
+      } else if (want === 'dark' || want === 'light') {
+        if (want === cur) {
+          return `<span class="t-dim">already in ${cur} mode.</span>`;
+        }
+        next = want;
+      } else {
+        return `<span class="t-err">theme: '${escapeHtml(want)}' is not a valid mode.</span> ` +
+               `Try <span class="t-cmd">theme dark</span>, <span class="t-cmd">theme light</span>, or just <span class="t-cmd">theme</span> to toggle.`;
+      }
+
       root.setAttribute('data-theme', next);
       try { localStorage.setItem('theme', next); } catch (e) {}
       return `theme → ${next}`;
@@ -269,9 +284,10 @@
   const COMMAND_NAMES = () => Object.keys(commands).concat(['git']);
 
   const ARG_CANDIDATES = {
-    cat:  ['about', 'now', 'contact', 'affiliation'],
-    open: ['posts', 'reading', 'cv', 'github', 'home'],
-    git:  ['log', 'status', 'blame', 'push', 'pull', 'commit'],
+    cat:   ['about', 'now', 'contact', 'affiliation'],
+    open:  ['posts', 'reading', 'cv', 'github', 'home'],
+    git:   ['log', 'status', 'blame', 'push', 'pull', 'commit'],
+    theme: ['dark', 'light'],
   };
 
   // Longest common prefix of a list of strings.
