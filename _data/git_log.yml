@@ -3,22 +3,17 @@
 # Refs render in (parens), like real `git log --decorate`.
 
 commits:
-  - hash: "a8f3c2d"
-    date: "2026-05-12"
-    author: "sumin1ee"
-    refs: ["HEAD", "main", "ECCV-2026"]
-    msg: "submit CamoSplat to ECCV 2026 — first author"
-
   - hash: "7e1d40a"
-    date: "2026-05-08"
+    date: "2026-05-06"
     author: "sumin1ee"
-    refs: ["NeurIPS-2026"]
-    msg: "submit ReSMap to NeurIPS 2026 — first author"
+    refs: ["HEAD", "main", "under-review"]
+    msg: "submit a mapping paper to NeurIPS 2026 — first author (double-blind, name withheld)"
 
-  - hash: "f29b3c4"
-    date: "2025-09-03"
+  - hash: "a8f3c2d"
+    date: "2026-03-05"
     author: "sumin1ee"
-    msg: "kick off Online Mapping with satellite priors (ReSMap)"
+    refs: ["ECCV-2026"]
+    msg: "submit CamoSplat to ECCV 2026 — first author"
 
   - hash: "c4e7a91"
     date: "2025-06-12"
