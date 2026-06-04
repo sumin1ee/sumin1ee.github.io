@@ -14,17 +14,21 @@ layout: default
         <div id="term-history"></div>
         <div class="term-input-line">
           <span class="term-prompt">$</span>
-          <input
-            id="term-input"
-            class="term-input"
-            type="text"
-            autocomplete="off"
-            autocapitalize="none"
-            autocorrect="off"
-            spellcheck="false"
-            aria-label="Terminal input"
-          />
-          <span class="caret" id="term-caret">▍</span>
+          <span class="term-input-wrap">
+            <input
+              id="term-input"
+              class="term-input"
+              type="text"
+              autocomplete="off"
+              autocapitalize="none"
+              autocorrect="off"
+              spellcheck="false"
+              aria-label="Terminal input"
+            />
+            <!-- mirrors the input text to measure caret x-position -->
+            <span class="term-mirror" id="term-mirror" aria-hidden="true"></span>
+            <span class="caret" id="term-caret">▍</span>
+          </span>
         </div>
       </div>
     </div>

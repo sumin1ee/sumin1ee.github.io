@@ -9,7 +9,19 @@
   const history = document.getElementById('term-history');
   const input   = document.getElementById('term-input');
   const caret   = document.getElementById('term-caret');
+  const mirror  = document.getElementById('term-mirror');
   if (!body || !input) return;
+
+  // Position the block caret right after the text the user has typed so it
+  // blinks where they're editing, not at the far right of the line.
+  const syncCaret = () => {
+    if (!caret || !mirror) return;
+    const pos = input.selectionStart == null ? input.value.length : input.selectionStart;
+    // Mirror the text up to the cursor; a zero-width space keeps width stable.
+    mirror.textContent = input.value.slice(0, pos) || '​';
+    // subtract scrollLeft so the caret stays correct if the input overflows
+    caret.style.left = (mirror.offsetWidth - input.scrollLeft) + 'px';
+  };
 
   let INDEX = null;
   const cmdHistory = [];
@@ -64,7 +76,9 @@
       const rendered = rows
         .map((r) => `  <span class="t-cmd">${r[0].padEnd(18)}</span><span class="t-desc">${r[1]}</span>`)
         .join('<br>');
-      return rendered;
+      return rendered +
+        `<br><br><span class="t-dim">tip: press <span class="t-cmd">Tab</span> to autocomplete commands and arguments, ` +
+        `<span class="t-cmd">↑/↓</span> for history.</span>`;
     },
 
     whoami: () =>
@@ -249,6 +263,90 @@
     return `${days[d.getUTCDay()]} ${months[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2,'0')} ${d.getUTCFullYear()}`;
   }
 
+  // ---------------------------- completion -------------------------------
+  // Candidate sets for the second word of each command, mirroring the
+  // switch/route tables above. `git` takes subcommands instead of files.
+  const COMMAND_NAMES = () => Object.keys(commands).concat(['git']);
+
+  const ARG_CANDIDATES = {
+    cat:  ['about', 'now', 'contact', 'affiliation'],
+    open: ['posts', 'reading', 'cv', 'github', 'home'],
+    git:  ['log', 'status', 'blame', 'push', 'pull', 'commit'],
+  };
+
+  // Longest common prefix of a list of strings.
+  function commonPrefix(list) {
+    if (list.length === 0) return '';
+    let p = list[0];
+    for (let i = 1; i < list.length; i++) {
+      while (!list[i].startsWith(p)) p = p.slice(0, -1);
+      if (!p) break;
+    }
+    return p;
+  }
+
+  // Given the current input, return { candidates, replaceFrom } where
+  // replaceFrom is the index in the string where the completed token starts.
+  function getCompletion(value) {
+    // Leading whitespace is preserved; we only complete the last token.
+    const m = value.match(/^(\s*)(.*)$/);
+    const lead = m[1];
+    const rest = m[2];
+    const parts = rest.split(/\s+/);
+    const onFirstWord = parts.length === 1 && !/\s$/.test(value);
+
+    if (onFirstWord) {
+      const frag = parts[0].toLowerCase();
+      const all = Array.from(new Set(COMMAND_NAMES())).sort();
+      // On an empty line, only advertise the documented commands (skip the
+      // easter eggs); when there's a prefix, complete against everything.
+      const documented = ['help', 'whoami', 'pwd', 'ls', 'cat', 'find', 'git', 'open', 'theme', 'clear', 'date'];
+      const pool = frag === '' ? documented.slice().sort() : all;
+      const cands = frag === '' ? pool : pool.filter((n) => n.startsWith(frag));
+      return { candidates: cands, replaceFrom: lead.length, isCommand: true };
+    }
+
+    // Completing an argument. The command is parts[0]; the fragment is the
+    // last token (which is '' if the input ends with a space).
+    const name = parts[0].toLowerCase();
+    const pool = ARG_CANDIDATES[name];
+    if (!pool) return { candidates: [], replaceFrom: value.length };
+
+    const endsWithSpace = /\s$/.test(value);
+    const frag = endsWithSpace ? '' : parts[parts.length - 1].toLowerCase();
+    const cands = frag === '' ? pool.slice() : pool.filter((c) => c.startsWith(frag));
+    // Where the fragment begins in the original string.
+    const replaceFrom = endsWithSpace ? value.length : value.length - frag.length;
+    return { candidates: cands.sort(), replaceFrom };
+  }
+
+  function handleTab() {
+    const value = input.value;
+    const { candidates, replaceFrom } = getCompletion(value);
+    if (candidates.length === 0) return;
+
+    const head = value.slice(0, replaceFrom);
+    const completed = commonPrefix(candidates);
+
+    if (candidates.length === 1) {
+      // Unique match: fill it in and add a trailing space so the next Tab
+      // moves on to argument completion.
+      input.value = head + candidates[0] + ' ';
+    } else {
+      // Multiple matches: extend to the longest common prefix, and if that
+      // adds nothing new, list the options (bash-style).
+      const current = value.slice(replaceFrom);
+      if (completed.length > current.length) {
+        input.value = head + completed;
+      } else {
+        writePrompt(value);
+        writeOut(candidates.map((c) => `<span class="t-dir">${escapeHtml(c)}</span>`).join('  '));
+        scrollDown();
+      }
+    }
+    syncCaret();
+  }
+
   // ------------------------------ execute --------------------------------
   function exec(raw) {
     const cmd = raw.trim();
@@ -312,6 +410,9 @@
         cmdCursor = cmdHistory.length;
       }
       exec(v);
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      handleTab();
     } else if (e.key === 'ArrowUp') {
       if (cmdHistory.length === 0) return;
       cmdCursor = Math.max(0, cmdCursor - 1);
@@ -325,12 +426,19 @@
       e.preventDefault();
       clear();
     }
+    // run after the browser applies the keystroke so caret tracks the result
+    requestAnimationFrame(syncCaret);
   });
+
+  // keep the caret glued to the text/cursor through every kind of edit
+  ['input', 'click', 'keyup', 'focus', 'select'].forEach((ev) =>
+    input.addEventListener(ev, syncCaret)
+  );
 
   // click anywhere on the terminal -> focus input
   document.getElementById('terminal').addEventListener('click', (e) => {
     if (window.getSelection().toString().length === 0) input.focus();
   });
   // auto-focus on load (but not aggressively if user is scrolling)
-  setTimeout(() => input.focus(), 600);
+  setTimeout(() => { input.focus(); syncCaret(); }, 600);
 })();
