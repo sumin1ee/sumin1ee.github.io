@@ -13,7 +13,7 @@ bilingual: true
 
 각 figure의 출처는 하이퍼링크로 달아두었습니다 :)
 
-<em>+++ Lane Topology Reasoning 섹션의 첫 글이다. 이쪽 분야가 제대로 탐구되기 시작한 것이 CVPR 2023에서 열린 Autonomous Driving Challenge for Lane Topology 때부터인데, 해당 챌린지에서 나온 데이터셋이 OpenLane(현재 Lane Topology Reasoning 분야에서 계속 사용되고 있는 데이터셋), Baseline 모델이 TopoNet이다. TopoNet이 어떤 철학으로 모델을 설계했는지 주의깊게 관찰해보자! :rocket:</em>
+<em>+++ Lane Topology Reasoning 섹션의 첫 글이다. 이쪽 분야가 제대로 탐구되기 시작한 것이 CVPR 2023에서 열린 Autonomous Driving Challenge for Lane Topology 때부터인데, 해당 챌린지에서 나온 데이터셋이 OpenLane(현재 Lane Topology Reasoning 분야에서 계속 사용되고 있는 데이터셋), Baseline 모델이 TopoNet이다. TopoNet이 어떤 철학으로 모델을 설계했는지 주의깊게 관찰해보자! 🚀</em>
 
 <br><br>
 
@@ -44,7 +44,7 @@ Online Mapping을 공부하다 보면, Lane Divider만 Detection하는 것에 �
 
 기존의 Online HD Map Construction 계열(HDMapNet, MapTR, VectorMapNet 등)은 lane, lane divider, crosswalk 같은 map element를 <strong>detection</strong>하는 데 집중했다. 이렇게 detect된 element들 사이의 <strong>topology</strong>는 명시적으로 다루지 않거나, post-processing으로 heuristic하게 붙이는 경우가 많았다.
 
-TopoNet은 여기서 한 걸음 더 나아가, 다음 네 가지를 **하나의 end-to-end 프레임워크 안에서 동시에** 푼다.
+TopoNet은 detection에서 멈추지 않고, 다음 네 가지를 **하나의 end-to-end framework에서 동시에** 푼다.
 
 1. **Lane Centerline Detection** — lane의 centerline(directed)을 detect
 2. **Traffic Element Detection** — 신호등, 표지판 등 traffic element를 detect
@@ -67,7 +67,7 @@ TopoNet은 여기서 한 걸음 더 나아가, 다음 네 가지를 **하나의 
 
 이유는 간단하다. lane divider는 "space를 나누는 선"일 뿐, direction이나 connectivity를 직접 담지 못한다. 반면 centerline은 **directed path**로 볼 수 있어서, 한 centerline의 endpoint가 다른 centerline의 start point와 이어진다는 식으로 <strong>graph의 edge</strong>를 자연스럽게 정의할 수 있다.
 
-즉, centerline을 node로, 그 connection을 edge로 보면 drivable한 path 전체가 하나의 <strong>directed graph</strong>가 된다. 이것이 topology reasoning의 출발점이다.
+즉, centerline을 node로 그 connection을 edge로 보면, drivable한 path 전체가 하나의 <strong>directed graph</strong>로 정리된다. topology reasoning은 여기서 시작한다.
 
 ---
 
@@ -92,7 +92,7 @@ TopoNet의 큰 그림은 다음과 같다.
 
 ### **Scene Graph Neural Network (SGNN)**
 
-핵심은 SGNN이다. 직관은 바로..  <em>"각 lane의 feature를, 이어진 neighbor lane과 그 lane을 통제하는 traffic element의 정보로 enrich하자."</em>
+SGNN의 아이디어는 한 문장으로 요약된다. <em>"각 lane의 feature를, 이어진 neighbor lane과 그 lane을 통제하는 traffic element의 정보로 enrich하자."</em>
 
 기존 방식(STSU, TPLR)의 한계는, 각 element를 **독립적으로** decode한 뒤 마지막에 relation만 따로 predict한다는 점이었다. 따라서 element feature 자체에는 "내가 누구와 이어져 있는가"라는 맥락이 들어있지 않다.
 
@@ -226,7 +226,7 @@ $$
 
 Eq 4와 비교하면 차이는 **안쪽 합 $\sum_{c_t \in C_t}$ 하나**다. $C_t$는 traffic element의 class set(신호등·표지판 등), $N(x)$는 lane $x$에 연결된 traffic element들, $S_t(c_t, y)$는 traffic element $y$가 class $c_t$일 classification score, $W_{lt}(c_t)$는 **class $c_t$ 전용 weight**다. 즉 vanilla의 single weight 자리에, class별 weight를 classification score로 가중해 더한 것이 들어간다.
 
-코드를 보면 이 class별 처리가 또렷하다:
+이 class별 처리는 코드에서 바로 드러난다:
 
 ```python
 # sgnn_decoder.py · class LcteSkgGCNLayer
@@ -270,13 +270,13 @@ return identity + self.dropout_layer(out)                              # residua
 
 마지막으로 두 가지. **Input** — SGNN의 lane query는 DETR식 *learnable query embedding*으로, decoder에서 BEV feature와 cross-attention하며 lane 정보를 흡수한다. adjacency matrix는 input이 아니라 layer가 돌며 만들어지는 intermediate output이다.
 
-**Iteration** — 그래서 첫 layer의 adjacency matrix는 **0(relation 모름)으로 initialize**되고, 이후 매 layer가 <em>(relation으로 feature 보강) → (보강된 feature로 relation 재predict)</em>을 한 번씩 수행해 다음 layer에 넘긴다. 이때 relation 재predict은 GCN이 아니라 별도의 pairwise MLP head([`relationship_head.py`](https://github.com/OpenDriveLab/TopoNet/blob/main/projects/toponet/models/dense_heads/relationship_head.py))가 맡는다 — **GCN이 relation을 소비해 feature를 만들고, head가 feature로 relation을 생산**한다. 이 두 단계가 layer마다 반복되며 detection과 relation이 함께 정밀해지는 것이 SGNN의 핵심이다.
+**Iteration** — 그래서 첫 layer의 adjacency matrix는 **0(relation 모름)으로 initialize**되고, 이후 매 layer가 <em>(relation으로 feature 보강) → (보강된 feature로 relation 재predict)</em>을 한 번씩 수행해 다음 layer에 넘긴다. 이때 relation 재predict은 GCN이 아니라 별도의 pairwise MLP head([`relationship_head.py`](https://github.com/OpenDriveLab/TopoNet/blob/main/projects/toponet/models/dense_heads/relationship_head.py))가 맡는다 — **GCN이 relation을 소비해 feature를 만들고, head가 feature로 relation을 생산**한다. 이 두 단계가 layer마다 반복되면서 detection과 relation이 같이 좋아진다. 이게 SGNN이 노린 구조다.
 
 #### **Topology Loss — sparse한 relation을 학습시키기**
 
 training loss는 detection(DET)과 topology(TOP)로 나뉜다. DET는 DETR 계열의 일반적인 classification+regression loss라 넘어가고, **TOP loss**만 짚자.
 
-topology head는 두 instance feature를 받아 <em>연결 여부(connected?)</em>를 predict하는 binary classifier다. label은 perception head의 matching 결과를 기준으로 각 pair에 부여된다. 문제는 **graph가 매우 sparse**하다는 점이다 — $N$개 lane이면 가능한 pair는 $N^2$인데 실제 연결된 pair는 극소수라, positive(연결)/negative(비연결) sample이 극심하게 imbalance하다. 그래서 단순 BCE 대신 **Focal Loss**를 써서, 압도적으로 많은 easy negative sample의 비중을 눌러준다. 이 supervision은 매 decoder layer마다 적용돼, iterative refinement와 맞물려 relation prediction을 layer별로 다듬는다.
+topology head는 두 instance feature를 받아 <em>연결 여부(connected?)</em>를 predict하는 binary classifier다. label은 perception head의 matching 결과를 기준으로 각 pair에 부여된다. 문제는 **graph가 매우 sparse**하다는 점이다 — $N$개 lane이면 가능한 pair는 $N^2$인데 실제 연결된 pair는 극소수라, positive(연결)/negative(비연결) sample이 극심하게 imbalance하다. 그래서 단순 BCE 대신 **Focal Loss**를 쓴다 — 수가 압도적인 easy negative의 비중을 낮추는 것이다. 이 loss는 매 decoder layer에 걸리므로, 앞서 본 iterative refinement와 함께 relation 예측이 layer마다 조금씩 나아진다.
 
 ---
 
@@ -289,8 +289,8 @@ evaluation metric <strong>OLS(OpenLane-V2 Score)</strong>는 네 가지 sub-metr
 
 - **DET$_l$** — lane centerline detection accuracy
 - **DET$_t$** — traffic element detection accuracy
-- **TOP$_{ll}$** — lane-lane topology accuracy
-- **TOP$_{lt}$** — lane-traffic topology accuracy
+- **$\text{TOP}_{ll}$** — lane-lane topology accuracy
+- **$\text{TOP}_{lt}$** — lane-traffic topology accuracy
 
 $$
 \text{OLS} = \tfrac{1}{4}\Big( \text{DET}_{l} + \text{DET}_{t} + \sqrt{\text{TOP}_{ll}} + \sqrt{\text{TOP}_{lt}} \Big)
@@ -307,23 +307,23 @@ OpenLane-V2 subset-A 기준, TopoNet의 수치는 다음과 같다 (paper Table 
 | **OLS** | **35.6** |
 | DET$_l$ (centerline) | 28.5 |
 | DET$_t$ (traffic element) | 48.1 |
-| TOP$_{ll}$ (lane-lane) | 4.1 |
-| TOP$_{lt}$ (lane-traffic) | 20.8 |
+| $\text{TOP}_{ll}$ (lane-lane) | 4.1 |
+| $\text{TOP}_{lt}$ (lane-traffic) | 20.8 |
 
-핵심은 절대 수치 자체보다, **topology metric(TOP$_{ll}$, TOP$_{lt}$)에서 기존 mapping 계열(MapTR, VectorMapNet 등)을 큰 폭으로 앞섰다는 점**이다. detection만 잘하던 model들과 달리, relation reasoning을 명시적으로 설계에 넣은 효과가 여기서 드러난다.
+핵심은 절대 수치 자체보다, **topology metric($\text{TOP}_{ll}$, $\text{TOP}_{lt}$)에서 기존 mapping 계열(MapTR, VectorMapNet 등)을 큰 폭으로 앞섰다는 점**이다. detection만 잘하던 기존 model들과 달리, relation reasoning을 설계에 직접 넣은 것이 이 격차로 이어졌다.
 
-다만 TOP$_{ll}$이 4.1에 불과하다는 점은, **lane-lane topology가 여전히 매우 어려운 open problem**이라는 것도 동시에 보여준다. 이 지점이 이후 후속 연구들이 파고드는 틈이 된다.
+다만 $\text{TOP}_{ll}$이 4.1에 불과하다는 점은, **lane-lane topology가 여전히 매우 어려운 open problem**이라는 것도 동시에 보여준다. 이 지점이 이후 후속 연구들이 파고드는 틈이 된다.
 
 ---
 
-## **Conclusion & 이 섹션에서의 위치**
+## **Conclusion — 그리고 왜 이 글이 먼저인가**
 ---
 
-TopoNet의 기여를 한 줄로 요약하면 —
+정리하면, TopoNet의 기여는 이렇다.
 
 > **lane·traffic element detection과 그들 사이의 relation reasoning을, 별개의 단계가 아니라 하나의 graph 위에서 end-to-end로 묶은 첫 framework.**
 
-기존 Online Mapping이 "무엇이 어디 있는가"를 풀었다면, TopoNet은 거기에 "**그래서 그것들이 어떻게 이어지는가**"를 더한다. 그리고 그 relation이야말로, detect된 map을 실제 drivable한 path graph로 바꿔주는 마지막 조각이다.
+기존 Online Mapping이 "무엇이 어디 있는가"까지 풀었다면, TopoNet은 "그것들이 어떻게 이어지는가"를 더한 셈이다. detect한 map을 실제 주행에 쓰려면 이 relation이 결국 필요하다.
 
 이 글을 Lane Topology Reasoning 섹션의 첫 글로 둔 이유가 여기에 있다. 이후에 다룰 **TopoMLP**(graph 대신 강한 detection + 단순한 MLP topology head로 더 좋은 성능을 낸다는 반박)도 TopoNet이 정의한 문제 설정 위에서 출발한다.
 
@@ -341,7 +341,7 @@ Sources for each figure are linked inline :)
 
 Once you spend enough time studying Online Mapping, a question creeps in: is it really enough to *only* detect centerlines? From a planning standpoint —
 
-*+++ This is the first post in the Lane Topology Reasoning section. After reading through a stack of Online HD Map Construction papers, I came to feel that good perception alone isn't enough — you have to solve the *relationships* (topology), like "can I actually go from this lane to that one," before a map becomes something you can really drive on. TopoNet felt like the natural starting point for that, so I picked it as the first post :rocket:*
+*+++ This is the first post in the Lane Topology Reasoning section. After reading through a stack of Online HD Map Construction papers, I came to feel that good perception alone isn't enough — you have to solve the *relationships* (topology), like "can I actually go from this lane to that one," before a map becomes something you can really drive on. TopoNet felt like the natural starting point for that, so I picked it as the first post 🚀*
 
 <br><br>
 
@@ -371,7 +371,7 @@ In an autonomous-driving stack, a map's job doesn't end at knowing "a lane is he
 
 Prior Online HD Map Construction methods (HDMapNet, MapTR, VectorMapNet, etc.) focused on **detecting** map elements — lanes, dividers, crosswalks. But the **connectivity (topology)** between those detected elements was either left implicit or stitched on afterwards with hand-crafted post-processing heuristics.
 
-TopoNet goes a step further, solving all four of the following **jointly, inside a single end-to-end framework**:
+TopoNet doesn't stop at detection — it solves the following four **jointly, in a single end-to-end framework**:
 
 1. **Lane Centerline Detection** — detect directed lane centerlines
 2. **Traffic Element Detection** — detect traffic lights, signs, and other elements
@@ -394,7 +394,7 @@ One point worth pausing on: earlier mapping papers mostly dealt with **lane divi
 
 The reason is simple. A divider is just "a line that splits space" — it doesn't directly carry direction or connectivity. A centerline, on the other hand, can be seen as a **directed path**, so you can naturally define a **graph edge** by saying "the endpoint of one centerline connects to the start of another."
 
-Treat centerlines as nodes and their connections as edges, and the entire set of drivable routes becomes a single **directed graph**. That is the starting point of topology reasoning.
+Treat centerlines as nodes and their connections as edges, and the drivable routes form a single **directed graph**. Topology reasoning starts here.
 
 ---
 
@@ -419,7 +419,7 @@ The big picture of TopoNet looks like this:
 
 ### **Scene Graph Neural Network (SGNN)**
 
-SGNN is the heart of the method. The intuition: <em>"enrich each lane's feature with information from its connected neighbor lanes and from the traffic elements that govern it."</em>
+The idea behind SGNN fits in one sentence: <em>"enrich each lane's feature with information from its connected neighbor lanes and from the traffic elements that govern it."</em>
 
 The limitation of prior approaches was that each element was decoded **independently**, with the relationships predicted only at the very end. That leaves the element features themselves without any context about "who am I connected to."
 
@@ -595,7 +595,7 @@ This `concat → downsample → residual` is exactly Eq 2, and **that is one tur
 
 Two last points. **Input** — SGNN's lane queries are DETR-style *learned query embeddings* that cross-attend to BEV features in the decoder to soak up lane information; the adjacency is not an input but an intermediate product built up across layers.
 
-**Refinement** — so the first layer's adjacency is **initialized to 0 (relations unknown)**, and each subsequent layer does one round of <em>(refine features with relations) → (re-predict relations)</em> before handing off. The re-prediction isn't the GCN but a separate pairwise MLP head ([`relationship_head.py`](https://github.com/OpenDriveLab/TopoNet/blob/main/projects/toponet/models/dense_heads/relationship_head.py)) — **the GCN consumes relations to build features, the head turns features into relations.** These two steps repeat per layer, sharpening detection and relations together — the heart of SGNN.
+**Refinement** — so the first layer's adjacency is **initialized to 0 (relations unknown)**, and each subsequent layer does one round of <em>(refine features with relations) → (re-predict relations)</em> before handing off. The re-prediction isn't the GCN but a separate pairwise MLP head ([`relationship_head.py`](https://github.com/OpenDriveLab/TopoNet/blob/main/projects/toponet/models/dense_heads/relationship_head.py)) — **the GCN consumes relations to build features, the head turns features into relations.** These two steps repeat at every layer, and detection and relations improve together — which is the structure SGNN was built around.
 
 #### **Topology loss — learning a sparse relation**
 
@@ -614,8 +614,8 @@ The evaluation metric, **OLS (OpenLane-V2 Score)**, is a composite of four sub-m
 
 - **DET$_l$** — lane centerline detection accuracy
 - **DET$_t$** — traffic element detection accuracy
-- **TOP$_{ll}$** — lane-lane topology accuracy
-- **TOP$_{lt}$** — lane-traffic topology accuracy
+- **$\text{TOP}_{ll}$** — lane-lane topology accuracy
+- **$\text{TOP}_{lt}$** — lane-traffic topology accuracy
 
 $$
 \text{OLS} = \tfrac{1}{4}\Big( \text{DET}_{l} + \text{DET}_{t} + \sqrt{\text{TOP}_{ll}} + \sqrt{\text{TOP}_{lt}} \Big)
@@ -632,23 +632,23 @@ On OpenLane-V2 subset-A, TopoNet's numbers are (paper Table 1):
 | **OLS** | **35.6** |
 | DET$_l$ (centerline) | 28.5 |
 | DET$_t$ (traffic element) | 48.1 |
-| TOP$_{ll}$ (lane-lane) | 4.1 |
-| TOP$_{lt}$ (lane-traffic) | 20.8 |
+| $\text{TOP}_{ll}$ (lane-lane) | 4.1 |
+| $\text{TOP}_{lt}$ (lane-traffic) | 20.8 |
 
-What matters is not the absolute numbers but the fact that **on the topology metrics (TOP$_{ll}$, TOP$_{lt}$) it beats the prior mapping line (MapTR, VectorMapNet, etc.) by a wide margin.** Unlike models that were only good at detection, the effect of explicitly building relational reasoning into the design shows up right here.
+What matters is not the absolute numbers but the fact that **on the topology metrics ($\text{TOP}_{ll}$, $\text{TOP}_{lt}$) it beats the prior mapping line (MapTR, VectorMapNet, etc.) by a wide margin.** Unlike prior models that were only good at detection, putting relational reasoning directly into the design is what produced this gap.
 
-That said, a TOP$_{ll}$ of just 4.1 also shows that **lane-lane topology remains a very hard open problem.** That gap is exactly the opening that later work digs into.
+That said, a $\text{TOP}_{ll}$ of just 4.1 also shows that **lane-lane topology remains a very hard open problem.** That gap is exactly the opening that later work digs into.
 
 ---
 
-## **Conclusion & where this sits in the section**
+## **Conclusion — and why this post comes first**
 ---
 
-TopoNet's contribution in one line —
+To sum up, TopoNet's contribution is this.
 
 > **The first framework to bind lane/traffic-element detection and the reasoning about their relationships into a single graph, end-to-end, rather than as separate stages.**
 
-Where earlier Online Mapping solved "what is where," TopoNet adds "**and so, how do those things connect.**" And that connectivity is precisely the final piece that turns a detected map into an actually drivable route graph.
+Earlier Online Mapping solved "what is where"; TopoNet adds "how those things connect." To actually drive on a detected map, you end up needing that connectivity.
 
 That is why this post opens the Lane Topology Reasoning section. **TopoMLP** — which I'll cover next, a rebuttal arguing that strong detection plus a simple MLP topology head does even better than elaborate graph reasoning — also sets out from the problem formulation TopoNet defined.
 
