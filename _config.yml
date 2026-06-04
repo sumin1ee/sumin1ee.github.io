@@ -10,6 +10,9 @@ baseurl: ""
 lang: en
 timezone: Asia/Seoul
 
+# Analytics — GoatCounter (cookieless). Dashboard: https://sumin1ee.goatcounter.com
+goatcounter: sumin1ee
+
 # ─── Author ──────────────────────────────────────────────────────────────
 author:
   name: Sumin Lee

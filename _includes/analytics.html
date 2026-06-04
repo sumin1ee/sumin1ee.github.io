@@ -1,0 +1,9 @@
+{%- comment -%}
+GoatCounter — privacy-friendly, cookieless analytics.
+Loads only in production (so local `jekyll serve` doesn't pollute stats) and
+only when `goatcounter:` is set in _config.yml. Get your code at goatcounter.com.
+{%- endcomment -%}
+{%- if jekyll.environment == "production" and site.goatcounter -%}
+<script data-goatcounter="https://{{ site.goatcounter }}.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+{%- endif -%}
