@@ -12,8 +12,7 @@ commits:
   - hash: "a8f3c2d"
     date: "2026-03-05"
     author: "sumin1ee"
-    refs: ["ECCV-2026"]
-    msg: "submit CamoSplat to ECCV 2026 — first author"
+    msg: "submit a reconstruction paper to ECCV 2026 — first author (double-blind, name withheld)"
 
   - hash: "c4e7a91"
     date: "2025-06-12"
