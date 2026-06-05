@@ -102,7 +102,7 @@ lane을 점들의 sequence로 직접 regression하면, 점 개수가 많을수�
 
 > <strong>📐 잠깐! Bézier Curve란 뭘까?</strong>
 >
-> <strong>Bézier curve</strong>는 소수의 <strong>control point</strong>들로 정의되는 smooth한 parametric curve다. cubic Bézier라면 4개의 control point $\mathbf{P}_0,\dots,\mathbf{P}_3$를 Bernstein 다항식 basis로 섞어서 $\mathbf{B}(t)=\sum_{i=0}^{3}\binom{3}{i}(1-t)^{3-i}t^{i}\mathbf{P}_i,\; t\in[0,1]$ 처럼 그려진다. $t$가 0에서 1로 흐르면 curve가 따라 그려지는데, 시작점($\mathbf{P}_0$)과 끝점($\mathbf{P}_3$)은 정확히 지나지만 가운데 control point들은 curve를 <em>잡아당기기만</em> 할 뿐 실제로 지나지는 않는다.
+> <strong>Bézier curve</strong>는 소수의 <strong>control point</strong>들로 정의되는 smooth한 parametric curve다. cubic Bézier라면 4개의 control point $$\mathbf{P}_0,\dots,\mathbf{P}_3$$를 Bernstein 다항식 basis로 섞어서 $$\mathbf{B}(t)=\sum_{i=0}^{3}\binom{3}{i}(1-t)^{3-i}t^{i}\mathbf{P}_i,\; t\in[0,1]$$ 처럼 그려진다. $$t$$가 0에서 1로 흐르면 curve가 따라 그려지는데, 시작점($$\mathbf{P}_0$$)과 끝점($$\mathbf{P}_3$$)은 정확히 지나지만 가운데 control point들은 curve를 <em>잡아당기기만</em> 할 뿐 실제로 지나지는 않는다.
 >
 > 그럼 기존 방식과 뭐가 다를까? 가장 naive한 baseline은 lane 위의 점 $N$개를 ordered list로 그냥 직접 regression하는 것이다. 하지만 lane을 촘촘하고 부드럽게 표현하려면 $N$이 커져야 하고, 그만큼 output dimension이 커지고 optimization이 어려워진다. 게다가 점들 사이에 smoothness 제약이 전혀 없어서 인접한 예측 점들이 <em>덜덜 떨리는</em>(jitter) 문제가 생긴다. 반면 Bézier는 curve 자체를 몇 개의 control point라는 <strong>parameter</strong>로 압축해서 표현한다.
 >
