@@ -129,41 +129,41 @@ te_feats = torch.stack([self.te_embed_branches[lid](te_feats[lid])
                         for lid in range(len(te_feats))])
 ```
 
-한 가지 디테일 — 이렇게 변환된 $\tilde{Q}_t$는 SGNN 안에서 **update하지 않고 그대로 둔다(intact).** centerline으로부터 traffic element를 거꾸로 상상하는 것은 어렵고, TE feature를 너무 많이 건드리면 오히려 성능이 떨어진다는 것을 저자들이 실험적으로 확인했기 때문이다. 즉 정보는 **TE → LC 방향으로** 흐른다.
+한 가지 디테일 — 이렇게 변환된 $$\tilde{Q}_t$$는 SGNN 안에서 **update하지 않고 그대로 둔다(intact).** centerline으로부터 traffic element를 거꾸로 상상하는 것은 어렵고, TE feature를 너무 많이 건드리면 오히려 성능이 떨어진다는 것을 저자들이 실험적으로 확인했기 때문이다. 즉 정보는 **TE → LC 방향으로** 흐른다.
 
 #### **② Graph message passing — relation으로 feature 보강**
 
 이제 두 query가 같은 space에 놓였다. 앞서 말한 *각 element를 독립적으로 decode하던* 기존 방식과 달리, SGNN은 **relation 정보를 feature를 만드는 과정 안으로 끌어들인다.** 그런데 본격적으로 들어가기 전에, "graph"라는 말부터 정리하고 가자.
 
-graph는 보통 $G = (V, E)$로 쓴다. $V$(vertices)는 **node의 set**, $E$(edges)는 **edge의 set** — 즉 <em>"어떤 점들이 있고, 그 점들이 어떻게 연결되는가"</em>다. TopoNet에서 node는 두 종류다.
+graph는 보통 $$G = (V, E)$$로 쓴다. $$V$$(vertices)는 **node의 set**, $$E$$(edges)는 **edge의 set** — 즉 <em>"어떤 점들이 있고, 그 점들이 어떻게 연결되는가"</em>다. TopoNet에서 node는 두 종류다.
 
-- $V_l$ — **lane(LC) node set**. node 하나가 directed centerline 하나다.
-- $V_t$ — **traffic element(TE) node set**. node 하나가 신호등·표지판 하나(2D box)다.
+- $$V_l$$ — **lane(LC) node set**. node 하나가 directed centerline 하나다.
+- $$V_t$$ — **traffic element(TE) node set**. node 하나가 신호등·표지판 하나(2D box)다.
 
-가장 단순하게는 모든 node를 한 graph에 넣고 다 이어버릴 수 있다 — $V = V_l \cup V_t$에 edge를 $E \subseteq V \times V$로 두는 **fully-connected** graph다. ($V \times V$는 가능한 모든 node 쌍을 뜻하는 Cartesian product다.) 하지만 이러면 연산량이 커질 뿐 아니라, <em>사람이 임의로 세워둔 신호등 두 개 사이</em>처럼 의미 없는 message까지 흐른다. 그래서 TopoNet은 의미 있는 relation만 남긴 **두 개의 directed graph**로 쪼갠다.
+가장 단순하게는 모든 node를 한 graph에 넣고 다 이어버릴 수 있다 — $$V = V_l \cup V_t$$에 edge를 $$E \subseteq V \times V$$로 두는 **fully-connected** graph다. ($$V \times V$$는 가능한 모든 node 쌍을 뜻하는 Cartesian product다.) 하지만 이러면 연산량이 커질 뿐 아니라, <em>사람이 임의로 세워둔 신호등 두 개 사이</em>처럼 의미 없는 message까지 흐른다. 그래서 TopoNet은 의미 있는 relation만 남긴 **두 개의 directed graph**로 쪼갠다.
 
 $$
 G_{ll} = (V_l,\ V_l \times V_l), \qquad
 G_{lt} = (V_l \cup V_t,\ V_l \times V_t)
 $$
 
-- $G_{ll}$ — **lane–lane graph**. node는 lane뿐, edge candidate는 모든 <em>(lane, lane)</em> 쌍($V_l \times V_l$)이다. "어느 lane이 어느 lane으로 이어지나".
-- $G_{lt}$ — **lane–traffic graph**. node는 lane과 traffic element, edge candidate는 <em>(lane, traffic element)</em> 쌍($V_l \times V_t$)뿐이다 — traffic element끼리는 잇지 않는다. "어느 신호·표지가 어느 lane을 통제하나".
+- $$G_{ll}$$ — **lane–lane graph**. node는 lane뿐, edge candidate는 모든 <em>(lane, lane)</em> 쌍($$V_l \times V_l$$)이다. "어느 lane이 어느 lane으로 이어지나".
+- $$G_{lt}$$ — **lane–traffic graph**. node는 lane과 traffic element, edge candidate는 <em>(lane, traffic element)</em> 쌍($$V_l \times V_t$$)뿐이다 — traffic element끼리는 잇지 않는다. "어느 신호·표지가 어느 lane을 통제하나".
 
 SGNN은 이 **두 graph 위에서 각각 message를 propagate**한 뒤, 두 결과를 합쳐 lane feature를 update한다. 이제 각 graph를 — 수식과 그에 대응하는 실제 코드를 나란히 두고 — 차례로 보자.
 
 #### **(a) lane–lane**
 
-각 layer는 이전 layer가 predict한 adjacency matrix $A_{ll}^{i-1}$로부터, message propagation을 제어하는 weight matrix $T_{ll}^{i}$를 만든다 (Eq 3):
+각 layer는 이전 layer가 predict한 adjacency matrix $$A_{ll}^{i-1}$$로부터, message propagation을 제어하는 weight matrix $$T_{ll}^{i}$$를 만든다 (Eq 3):
 
 $$
 T_{ll}^{0} = I, \qquad
 T_{ll}^{i} = \beta_{ll}\big( A_{ll}^{i-1} + A_{ll}^{i-1\top} \big) + I
 $$
 
-여기서 $I$는 self-loop(자기 자신의 feature를 보존하는 identity matrix)이고, $A_{ll}^{i-1\top}$는 $A_{ll}^{i-1}$의 <strong>transpose(backward direction)</strong>다. centerline은 *directed* path라 message가 한 방향(lane → 후행 lane)으로만 흐르는데, lane의 위치는 neighbor의 위치를 알려주는 단서이므로 transpose를 더해 **bidirectional 교류**를 허용한다. $\beta_{ll}$은 propagation 비율을 조절하는 hyperparameter다.
+여기서 $$I$$는 self-loop(자기 자신의 feature를 보존하는 identity matrix)이고, $$A_{ll}^{i-1\top}$$는 $$A_{ll}^{i-1}$$의 <strong>transpose(backward direction)</strong>다. centerline은 *directed* path라 message가 한 방향(lane → 후행 lane)으로만 흐르는데, lane의 위치는 neighbor의 위치를 알려주는 단서이므로 transpose를 더해 **bidirectional 교류**를 허용한다. $$\beta_{ll}$$은 propagation 비율을 조절하는 hyperparameter다.
 
-$A_{ll}^{\top}$가 *방향만 뒤집은* adjacency matrix임을 작은 예로 보자. lane 5개가 1→2→3, 4→5로 이어지고, convention은 **$A[i][j]=1$이면 "$i$에서 $j$로 갈 수 있다"**:
+$$A_{ll}^{\top}$$가 *방향만 뒤집은* adjacency matrix임을 작은 예로 보자. lane 5개가 1→2→3, 4→5로 이어지고, convention은 **$$A[i][j]=1$$이면 "$$i$$에서 $$j$$로 갈 수 있다"**:
 
 $$
 A_{ll} =
@@ -185,7 +185,7 @@ A_{ll}^{\top} =
 \end{bmatrix}
 $$
 
-lane 2를 보면 — $A$의 2행 `[0 0 1 0 0]`은 **다음 lane 3**(successor), $A^{\top}$의 2행 `[1 0 0 0 0]`은 **이전 lane 1**(predecessor)을 가리킨다. forward($A$)만 쓰면 자기 successor만 보이므로, transpose를 더해 predecessor까지 bidirectional로 모은다.
+lane 2를 보면 — $$A$$의 2행 `[0 0 1 0 0]`은 **다음 lane 3**(successor), $$A^{\top}$$의 2행 `[1 0 0 0 0]`은 **이전 lane 1**(predecessor)을 가리킨다. forward($$A$$)만 쓰면 자기 successor만 보이므로, transpose를 더해 predecessor까지 bidirectional로 모은다.
 
 코드로 보면 식 (3)이 거의 그대로 옮겨진다:
 
@@ -206,7 +206,7 @@ def forward(self, input, adj):
     return output
 ```
 
-`self.weight`(self-loop)가 $I$ 항, `adj`/`adj.permute`가 $A_{ll}$과 $A_{ll}^{\top}$, `edge_weight`가 $\beta_{ll}$이다. forward와 backward를 *각각 다른 weight*($W_f, W_b$)로 처리하는 것이 Eq 3에서 두 항을 더하는 것과 대응한다.
+`self.weight`(self-loop)가 $$I$$ 항, `adj`/`adj.permute`가 $$A_{ll}$$과 $$A_{ll}^{\top}$$, `edge_weight`가 $$\beta_{ll}$$이다. forward와 backward를 *각각 다른 weight*($$W_f, W_b$$)로 처리하는 것이 Eq 3에서 두 항을 더하는 것과 대응한다.
 
 #### **(b) lane–traffic — transpose가 없는 이유**
 
@@ -217,7 +217,7 @@ T_{lt}^{0} = O, \qquad
 T_{lt}^{i} = \beta_{lt} \cdot A_{lt}^{i-1}
 $$
 
-$O$는 원소가 모두 0인 zero matrix(첫 layer는 relation을 모름)이고, $A_{lt}^{i-1}$는 <em>(lane, traffic element)</em> adjacency matrix다. lane–lane과 비교하면 **transpose 항도 self-loop도 없다.** $G_{lt}$가 **bipartite graph**이기 때문이다 — 한쪽엔 lane, 다른 쪽엔 traffic element만 있고, relation은 "traffic element → lane"이라는 *한 방향*뿐이다(lane이 신호등을 통제하지는 않으니까). 그래서 backward(transpose)도, 같은 종류끼리의 self-loop도 의미가 없다. 이 GCN의 실제 코드는 아래 ③에서 함께 본다 — vanilla(Eq 4)와 class별 버전(Eq 6)이 같은 함수에 들어 있기 때문이다.
+$$O$$는 원소가 모두 0인 zero matrix(첫 layer는 relation을 모름)이고, $$A_{lt}^{i-1}$$는 <em>(lane, traffic element)</em> adjacency matrix다. lane–lane과 비교하면 **transpose 항도 self-loop도 없다.** $$G_{lt}$$가 **bipartite graph**이기 때문이다 — 한쪽엔 lane, 다른 쪽엔 traffic element만 있고, relation은 "traffic element → lane"이라는 *한 방향*뿐이다(lane이 신호등을 통제하지는 않으니까). 그래서 backward(transpose)도, 같은 종류끼리의 self-loop도 의미가 없다. 이 GCN의 실제 코드는 아래 ③에서 함께 본다 — vanilla(Eq 4)와 class별 버전(Eq 6)이 같은 함수에 들어 있기 때문이다.
 
 #### **③ Scene Knowledge Graph — traffic element를 class별로**
 
@@ -227,7 +227,7 @@ $$
 Q''_{l}(x) = \sum_{y \in N(x)} \sum_{c_t \in C_t} \beta_{lt}\cdot S_t(c_t, y)\, A_{lt}(x, y)\, W_{lt}(c_t)\, \tilde{Q}_t(y)
 $$
 
-Eq 4와 비교하면 차이는 **안쪽 합 $\sum_{c_t \in C_t}$ 하나**다. $C_t$는 traffic element의 class set(신호등·표지판 등), $N(x)$는 lane $x$에 연결된 traffic element들, $S_t(c_t, y)$는 traffic element $y$가 class $c_t$일 classification score, $W_{lt}(c_t)$는 **class $c_t$ 전용 weight**다. 즉 vanilla의 single weight 자리에, class별 weight를 classification score로 가중해 더한 것이 들어간다.
+Eq 4와 비교하면 차이는 **안쪽 합 $$\sum_{c_t \in C_t}$$ 하나**다. $$C_t$$는 traffic element의 class set(신호등·표지판 등), $$N(x)$$는 lane $$x$$에 연결된 traffic element들, $$S_t(c_t, y)$$는 traffic element $$y$$가 class $$c_t$$일 classification score, $$W_{lt}(c_t)$$는 **class $$c_t$$ 전용 weight**다. 즉 vanilla의 single weight 자리에, class별 weight를 classification score로 가중해 더한 것이 들어간다.
 
 이 class별 처리는 코드에서 바로 드러난다:
 
@@ -245,18 +245,18 @@ def forward(self, te_query, lcte_adj, te_cls_scores):
     return output
 ```
 
-`self.weight`가 class 축을 가진 `[num_te_classes, C, C]`이고, `.sum(1)`이 Eq 6의 안쪽 합 $\sum_{c_t}$다. `cls_scores`가 $S_t$, `adj = lcte_adj * edge_weight`가 Eq 4의 $\beta_{lt} A_{lt}$ — transpose가 없는 것까지 그대로 보인다. 즉 **vanilla(Eq 4)와 knowledge graph(Eq 6)가 한 함수에 함께** 구현돼 있다.
+`self.weight`가 class 축을 가진 `[num_te_classes, C, C]`이고, `.sum(1)`이 Eq 6의 안쪽 합 $$\sum_{c_t}$$다. `cls_scores`가 $$S_t$$, `adj = lcte_adj * edge_weight`가 Eq 4의 $$\beta_{lt} A_{lt}$$ — transpose가 없는 것까지 그대로 보인다. 즉 **vanilla(Eq 4)와 knowledge graph(Eq 6)가 한 함수에 함께** 구현돼 있다.
 
 #### **두 그래프를 합치기 (Eq 2)**
 
-두 GCN의 결과 $Q'_l$(lane–lane)과 $Q''_l$(lane–traffic)은 합쳐져 최종 lane feature가 된다 (Eq 2):
+두 GCN의 결과 $$Q'_l$$(lane–lane)과 $$Q''_l$$(lane–traffic)은 합쳐져 최종 lane feature가 된다 (Eq 2):
 
 $$
 R^i = \text{downsample}\big(\text{ReLU}(\text{concat}(Q'_l,\, Q''_l))\big), \qquad
 \tilde{Q}_l^{\,i} = Q_l^i + R^i
 $$
 
-둘을 concat하고 ReLU·downsample로 한 dimension($R^i$, *information gain*)으로 줄인 뒤, 원래 query에 residual로 더한다. 코드에서도 같다:
+둘을 concat하고 ReLU·downsample로 한 dimension($$R^i$$, *information gain*)으로 줄인 뒤, 원래 query에 residual로 더한다. 코드에서도 같다:
 
 ```python
 # sgnn_decoder.py · class FFN_SGNN.forward  (한 SGNN layer의 합치기)
@@ -279,7 +279,7 @@ return identity + self.dropout_layer(out)                              # residua
 
 training loss는 detection(DET)과 topology(TOP)로 나뉜다. DET는 DETR 계열의 일반적인 classification+regression loss라 넘어가고, **TOP loss**만 짚자.
 
-topology head는 두 instance feature를 받아 <em>연결 여부(connected?)</em>를 predict하는 binary classifier다. label은 perception head의 matching 결과를 기준으로 각 pair에 부여된다. 문제는 **graph가 매우 sparse**하다는 점이다 — $N$개 lane이면 가능한 pair는 $N^2$인데 실제 연결된 pair는 극소수라, positive(연결)/negative(비연결) sample이 극심하게 imbalance하다. 그래서 단순 BCE 대신 **Focal Loss**를 쓴다 — 수가 압도적인 easy negative의 비중을 낮추는 것이다. 이 loss는 매 decoder layer에 걸리므로, 앞서 본 iterative refinement와 함께 relation 예측이 layer마다 조금씩 나아진다.
+topology head는 두 instance feature를 받아 <em>연결 여부(connected?)</em>를 predict하는 binary classifier다. label은 perception head의 matching 결과를 기준으로 각 pair에 부여된다. 문제는 **graph가 매우 sparse**하다는 점이다 — $$N$$개 lane이면 가능한 pair는 $$N^2$$인데 실제 연결된 pair는 극소수라, positive(연결)/negative(비연결) sample이 극심하게 imbalance하다. 그래서 단순 BCE 대신 **Focal Loss**를 쓴다 — 수가 압도적인 easy negative의 비중을 낮추는 것이다. 이 loss는 매 decoder layer에 걸리므로, 앞서 본 iterative refinement와 함께 relation 예측이 layer마다 조금씩 나아진다.
 
 ---
 
@@ -290,10 +290,10 @@ TopoNet은 단순히 모델만 내놓은 게 아니라, 이 task를 평가하기
 
 evaluation metric <strong>OLS(OpenLane-V2 Score)</strong>는 네 가지 sub-metric의 종합이다.
 
-- **DET$_l$** — lane centerline detection accuracy
-- **DET$_t$** — traffic element detection accuracy
-- **$\text{TOP}_{ll}$** — lane-lane topology accuracy
-- **$\text{TOP}_{lt}$** — lane-traffic topology accuracy
+- **DET$$_l$$** — lane centerline detection accuracy
+- **DET$$_t$$** — traffic element detection accuracy
+- **$$\text{TOP}_{ll}$$** — lane-lane topology accuracy
+- **$$\text{TOP}_{lt}$$** — lane-traffic topology accuracy
 
 $$
 \text{OLS} = \tfrac{1}{4}\Big( \text{DET}_{l} + \text{DET}_{t} + \sqrt{\text{TOP}_{ll}} + \sqrt{\text{TOP}_{lt}} \Big)
@@ -308,14 +308,14 @@ OpenLane-V2 subset-A 기준, TopoNet의 수치는 다음과 같다 (paper Table 
 | Metric | Value |
 |---|---|
 | **OLS** | **35.6** |
-| DET$_l$ (centerline) | 28.5 |
-| DET$_t$ (traffic element) | 48.1 |
-| $\text{TOP}_{ll}$ (lane-lane) | 4.1 |
-| $\text{TOP}_{lt}$ (lane-traffic) | 20.8 |
+| DET$$_l$$ (centerline) | 28.5 |
+| DET$$_t$$ (traffic element) | 48.1 |
+| $$\text{TOP}_{ll}$$ (lane-lane) | 4.1 |
+| $$\text{TOP}_{lt}$$ (lane-traffic) | 20.8 |
 
-핵심은 절대 수치 자체보다, **topology metric($\text{TOP}_{ll}$, $\text{TOP}_{lt}$)에서 기존 mapping 계열(MapTR, VectorMapNet 등)을 큰 폭으로 앞섰다는 점**이다. detection만 잘하던 기존 model들과 달리, relation reasoning을 설계에 직접 넣은 것이 이 격차로 이어졌다.
+핵심은 절대 수치 자체보다, **topology metric($$\text{TOP}_{ll}$$, $$\text{TOP}_{lt}$$)에서 기존 mapping 계열(MapTR, VectorMapNet 등)을 큰 폭으로 앞섰다는 점**이다. detection만 잘하던 기존 model들과 달리, relation reasoning을 설계에 직접 넣은 것이 이 격차로 이어졌다.
 
-다만 $\text{TOP}_{ll}$이 4.1에 불과하다는 점은, **lane-lane topology가 여전히 매우 어려운 open problem**이라는 것도 동시에 보여준다. 이 지점이 이후 후속 연구들이 파고드는 틈이 된다.
+다만 $$\text{TOP}_{ll}$$이 4.1에 불과하다는 점은, **lane-lane topology가 여전히 매우 어려운 open problem**이라는 것도 동시에 보여준다. 이 지점이 이후 후속 연구들이 파고드는 틈이 된다.
 
 ---
 
@@ -456,41 +456,41 @@ te_feats = torch.stack([self.te_embed_branches[lid](te_feats[lid])
                         for lid in range(len(te_feats))])
 ```
 
-One detail — the embedded $\tilde{Q}_t$ is then **kept intact** inside the SGNN. Imagining traffic elements back from centerlines is hard, and the authors empirically found that touching TE features too much actually hurts. Information flows **from TE to LC**.
+One detail — the embedded $$\tilde{Q}_t$$ is then **kept intact** inside the SGNN. Imagining traffic elements back from centerlines is hard, and the authors empirically found that touching TE features too much actually hurts. Information flows **from TE to LC**.
 
 #### **② Graph message passing — refining features with relations**
 
 Now that both queries live in the same space, here's the main part. Unlike the earlier approaches that *decode each element independently*, SGNN **pulls relational information into the feature-building process itself.** But before diving in, let's pin down the word "graph."
 
-A graph is written $G = (V, E)$, where $V$ (vertices) is the **set of nodes** and $E$ (edges) the **set of connections** — <em>"what points exist, and how are they linked."</em> In TopoNet the nodes come in two kinds.
+A graph is written $$G = (V, E)$$, where $$V$$ (vertices) is the **set of nodes** and $$E$$ (edges) the **set of connections** — <em>"what points exist, and how are they linked."</em> In TopoNet the nodes come in two kinds.
 
-- $V_l$ — the **lane (LC) nodes**. One node = one directed centerline.
-- $V_t$ — the **traffic-element (TE) nodes**. One node = one light/sign (a 2D box).
+- $$V_l$$ — the **lane (LC) nodes**. One node = one directed centerline.
+- $$V_t$$ — the **traffic-element (TE) nodes**. One node = one light/sign (a 2D box).
 
-The naive option is to drop every node into one graph and connect them all — a **fully-connected** graph with $V = V_l \cup V_t$ and edges $E \subseteq V \times V$. ($V \times V$ is the Cartesian product: every possible pair of nodes.) But that's expensive and lets meaningless messages flow — e.g. between *two traffic lights placed arbitrarily by humans*. So TopoNet splits it into **two directed graphs** that keep only the meaningful relations:
+The naive option is to drop every node into one graph and connect them all — a **fully-connected** graph with $$V = V_l \cup V_t$$ and edges $$E \subseteq V \times V$$. ($$V \times V$$ is the Cartesian product: every possible pair of nodes.) But that's expensive and lets meaningless messages flow — e.g. between *two traffic lights placed arbitrarily by humans*. So TopoNet splits it into **two directed graphs** that keep only the meaningful relations:
 
 $$
 G_{ll} = (V_l,\ V_l \times V_l), \qquad
 G_{lt} = (V_l \cup V_t,\ V_l \times V_t)
 $$
 
-- $G_{ll}$ — the **lane–lane graph**. Nodes are lanes only; candidate edges are all <em>(lane, lane)</em> pairs ($V_l \times V_l$). "Which lane leads to which."
-- $G_{lt}$ — the **lane–traffic graph**. Nodes are lanes and traffic elements; candidate edges are only <em>(lane, traffic-element)</em> pairs ($V_l \times V_t$) — never element-to-element. "Which light/sign governs which lane."
+- $$G_{ll}$$ — the **lane–lane graph**. Nodes are lanes only; candidate edges are all <em>(lane, lane)</em> pairs ($$V_l \times V_l$$). "Which lane leads to which."
+- $$G_{lt}$$ — the **lane–traffic graph**. Nodes are lanes and traffic elements; candidate edges are only <em>(lane, traffic-element)</em> pairs ($$V_l \times V_t$$) — never element-to-element. "Which light/sign governs which lane."
 
 SGNN **propagates messages over both graphs**, then merges the two results to update the lane features. Let's take each graph in turn, putting the equation and its actual code side by side.
 
 #### **(a) lane–lane**
 
-Each layer turns the adjacency $A_{ll}^{i-1}$ predicted by the previous layer into a weight matrix $T_{ll}^{i}$ that controls message flow (Eq 3):
+Each layer turns the adjacency $$A_{ll}^{i-1}$$ predicted by the previous layer into a weight matrix $$T_{ll}^{i}$$ that controls message flow (Eq 3):
 
 $$
 T_{ll}^{0} = I, \qquad
 T_{ll}^{i} = \beta_{ll}\big( A_{ll}^{i-1} + A_{ll}^{i-1\top} \big) + I
 $$
 
-Here $I$ is the self-loop (the identity matrix, preserving a node's own feature), and $A_{ll}^{i-1\top}$ is the **transpose (backward direction)** of $A_{ll}^{i-1}$. Because a centerline is a *directed* path, messages flow one way (lane → successor); but a lane's position cues its neighbors', so the transpose is added for **two-way exchange**. $\beta_{ll}$ controls how much is propagated.
+Here $$I$$ is the self-loop (the identity matrix, preserving a node's own feature), and $$A_{ll}^{i-1\top}$$ is the **transpose (backward direction)** of $$A_{ll}^{i-1}$$. Because a centerline is a *directed* path, messages flow one way (lane → successor); but a lane's position cues its neighbors', so the transpose is added for **two-way exchange**. $$\beta_{ll}$$ controls how much is propagated.
 
-A small example shows $A_{ll}^{\top}$ is just the adjacency *with its direction flipped*. Say five lanes connect as 1→2→3 and 4→5, with the convention **$A[i][j]=1$ meaning "you can go from $i$ to $j$"**:
+A small example shows $$A_{ll}^{\top}$$ is just the adjacency *with its direction flipped*. Say five lanes connect as 1→2→3 and 4→5, with the convention **$$A[i][j]=1$$ meaning "you can go from $$i$$ to $$j$$"**:
 
 $$
 A_{ll} =
@@ -512,7 +512,7 @@ A_{ll}^{\top} =
 \end{bmatrix}
 $$
 
-Take lane 2 — row 2 of $A$, `[0 0 1 0 0]`, points to its **successor 3**; row 2 of $A^{\top}$, `[1 0 0 0 0]`, points to its **predecessor 1**. Forward ($A$) alone only sees successors, so the transpose is added to gather predecessors too.
+Take lane 2 — row 2 of $$A$$, `[0 0 1 0 0]`, points to its **successor 3**; row 2 of $$A^{\top}$$, `[1 0 0 0 0]`, points to its **predecessor 1**. Forward ($$A$$) alone only sees successors, so the transpose is added to gather predecessors too.
 
 In code, Eq 3 carries over almost verbatim:
 
@@ -533,7 +533,7 @@ def forward(self, input, adj):
     return output
 ```
 
-`self.weight` (self-loop) is the $I$ term, `adj` / `adj.permute` are $A_{ll}$ and $A_{ll}^{\top}$, and `edge_weight` is $\beta_{ll}$. Handling forward and backward with *separate weights* ($W_f, W_b$) mirrors summing the two terms in Eq 3.
+`self.weight` (self-loop) is the $$I$$ term, `adj` / `adj.permute` are $$A_{ll}$$ and $$A_{ll}^{\top}$$, and `edge_weight` is $$\beta_{ll}$$. Handling forward and backward with *separate weights* ($$W_f, W_b$$) mirrors summing the two terms in Eq 3.
 
 #### **(b) lane–traffic — why there's no transpose**
 
@@ -544,7 +544,7 @@ T_{lt}^{0} = O, \qquad
 T_{lt}^{i} = \beta_{lt} \cdot A_{lt}^{i-1}
 $$
 
-$O$ is the all-zeros matrix (the first layer knows no relations), and $A_{lt}^{i-1}$ is the <em>(lane, traffic-element)</em> adjacency. Compared to lane–lane, there's **no transpose and no self-loop.** The reason is that $G_{lt}$ is **bipartite** — one side is lanes, the other traffic elements, and the relation is one-directional, "traffic element → lane" (a lane doesn't govern a light). So a reverse direction and a same-type self-loop are both meaningless. We'll see this GCN's code in ③ below — vanilla (Eq 4) and the per-class version (Eq 6) live in the same function.
+$$O$$ is the all-zeros matrix (the first layer knows no relations), and $$A_{lt}^{i-1}$$ is the <em>(lane, traffic-element)</em> adjacency. Compared to lane–lane, there's **no transpose and no self-loop.** The reason is that $$G_{lt}$$ is **bipartite** — one side is lanes, the other traffic elements, and the relation is one-directional, "traffic element → lane" (a lane doesn't govern a light). So a reverse direction and a same-type self-loop are both meaningless. We'll see this GCN's code in ③ below — vanilla (Eq 4) and the per-class version (Eq 6) live in the same function.
 
 #### **③ Scene Knowledge Graph — traffic elements, per class**
 
@@ -554,7 +554,7 @@ $$
 Q''_{l}(x) = \sum_{y \in N(x)} \sum_{c_t \in C_t} \beta_{lt}\cdot S_t(c_t, y)\, A_{lt}(x, y)\, W_{lt}(c_t)\, \tilde{Q}_t(y)
 $$
 
-Compared to Eq 4, the one difference is the **inner sum $\sum_{c_t \in C_t}$**. $C_t$ is the set of traffic-element classes (lights, signs, …), $N(x)$ the traffic elements connected to lane $x$, $S_t(c_t, y)$ the score that element $y$ is class $c_t$, and $W_{lt}(c_t)$ a **per-class weight**. So in place of vanilla's single weight, the per-class weights summed and scored by classification go in.
+Compared to Eq 4, the one difference is the **inner sum $$\sum_{c_t \in C_t}$$**. $$C_t$$ is the set of traffic-element classes (lights, signs, …), $$N(x)$$ the traffic elements connected to lane $$x$$, $$S_t(c_t, y)$$ the score that element $$y$$ is class $$c_t$$, and $$W_{lt}(c_t)$$ a **per-class weight**. So in place of vanilla's single weight, the per-class weights summed and scored by classification go in.
 
 The code makes this per-class handling explicit:
 
@@ -572,18 +572,18 @@ def forward(self, te_query, lcte_adj, te_cls_scores):
     return output
 ```
 
-`self.weight` carries a class axis `[num_te_classes, C, C]`, and `.sum(1)` is the inner sum $\sum_{c_t}$ of Eq 6. `cls_scores` is $S_t$, and `adj = lcte_adj * edge_weight` is the $\beta_{lt} A_{lt}$ of Eq 4 — with no transpose, just as stated. So **vanilla (Eq 4) and the knowledge graph (Eq 6) live in one function**.
+`self.weight` carries a class axis `[num_te_classes, C, C]`, and `.sum(1)` is the inner sum $$\sum_{c_t}$$ of Eq 6. `cls_scores` is $$S_t$$, and `adj = lcte_adj * edge_weight` is the $$\beta_{lt} A_{lt}$$ of Eq 4 — with no transpose, just as stated. So **vanilla (Eq 4) and the knowledge graph (Eq 6) live in one function**.
 
 #### **Merging the two graphs (Eq 2)**
 
-The two GCN outputs $Q'_l$ (lane–lane) and $Q''_l$ (lane–traffic) are merged into the final lane feature (Eq 2):
+The two GCN outputs $$Q'_l$$ (lane–lane) and $$Q''_l$$ (lane–traffic) are merged into the final lane feature (Eq 2):
 
 $$
 R^i = \text{downsample}\big(\text{ReLU}(\text{concat}(Q'_l,\, Q''_l))\big), \qquad
 \tilde{Q}_l^{\,i} = Q_l^i + R^i
 $$
 
-Concatenate the two, reduce to one dimension ($R^i$, the *information gain*) via ReLU + downsample, and add back to the original query as a residual. The code matches:
+Concatenate the two, reduce to one dimension ($$R^i$$, the *information gain*) via ReLU + downsample, and add back to the original query as a residual. The code matches:
 
 ```python
 # sgnn_decoder.py · class FFN_SGNN.forward  (merging within one SGNN layer)
@@ -606,7 +606,7 @@ Two last points. **Input** — SGNN's lane queries are DETR-style *learned query
 
 The training loss splits into detection (DET) and topology (TOP). DET is the usual DETR-style classification + regression loss, so we skip it and focus on the **TOP loss**.
 
-The topology head is a binary classifier that takes two instance features and predicts *whether they're connected*; ground truth is assigned per pair from the perception heads' matching results. The catch is that **the graph is very sparse** — with $N$ lanes there are $N^2$ possible pairs but only a handful are actually connected, so positive/negative samples are wildly imbalanced. Hence **Focal loss** instead of plain BCE, to down-weight the overwhelming easy negatives. This supervision is applied at every decoder layer, dovetailing with the iterative refinement to sharpen relations layer by layer.
+The topology head is a binary classifier that takes two instance features and predicts *whether they're connected*; ground truth is assigned per pair from the perception heads' matching results. The catch is that **the graph is very sparse** — with $$N$$ lanes there are $$N^2$$ possible pairs but only a handful are actually connected, so positive/negative samples are wildly imbalanced. Hence **Focal loss** instead of plain BCE, to down-weight the overwhelming easy negatives. This supervision is applied at every decoder layer, dovetailing with the iterative refinement to sharpen relations layer by layer.
 
 ---
 
@@ -617,10 +617,10 @@ TopoNet didn't just ship a model — it arrived together with **OpenLane-V2**, a
 
 The evaluation metric, **OLS (OpenLane-V2 Score)**, is a composite of four sub-metrics:
 
-- **DET$_l$** — lane centerline detection accuracy
-- **DET$_t$** — traffic element detection accuracy
-- **$\text{TOP}_{ll}$** — lane-lane topology accuracy
-- **$\text{TOP}_{lt}$** — lane-traffic topology accuracy
+- **DET$$_l$$** — lane centerline detection accuracy
+- **DET$$_t$$** — traffic element detection accuracy
+- **$$\text{TOP}_{ll}$$** — lane-lane topology accuracy
+- **$$\text{TOP}_{lt}$$** — lane-traffic topology accuracy
 
 $$
 \text{OLS} = \tfrac{1}{4}\Big( \text{DET}_{l} + \text{DET}_{t} + \sqrt{\text{TOP}_{ll}} + \sqrt{\text{TOP}_{lt}} \Big)
@@ -635,14 +635,14 @@ On OpenLane-V2 subset-A, TopoNet's numbers are (paper Table 1):
 | Metric | Value |
 |---|---|
 | **OLS** | **35.6** |
-| DET$_l$ (centerline) | 28.5 |
-| DET$_t$ (traffic element) | 48.1 |
-| $\text{TOP}_{ll}$ (lane-lane) | 4.1 |
-| $\text{TOP}_{lt}$ (lane-traffic) | 20.8 |
+| DET$$_l$$ (centerline) | 28.5 |
+| DET$$_t$$ (traffic element) | 48.1 |
+| $$\text{TOP}_{ll}$$ (lane-lane) | 4.1 |
+| $$\text{TOP}_{lt}$$ (lane-traffic) | 20.8 |
 
-What matters is not the absolute numbers but the fact that **on the topology metrics ($\text{TOP}_{ll}$, $\text{TOP}_{lt}$) it beats the prior mapping line (MapTR, VectorMapNet, etc.) by a wide margin.** Unlike prior models that were only good at detection, putting relational reasoning directly into the design is what produced this gap.
+What matters is not the absolute numbers but the fact that **on the topology metrics ($$\text{TOP}_{ll}$$, $$\text{TOP}_{lt}$$) it beats the prior mapping line (MapTR, VectorMapNet, etc.) by a wide margin.** Unlike prior models that were only good at detection, putting relational reasoning directly into the design is what produced this gap.
 
-That said, a $\text{TOP}_{ll}$ of just 4.1 also shows that **lane-lane topology remains a very hard open problem.** That gap is exactly the opening that later work digs into.
+That said, a $$\text{TOP}_{ll}$$ of just 4.1 also shows that **lane-lane topology remains a very hard open problem.** That gap is exactly the opening that later work digs into.
 
 ---
 
