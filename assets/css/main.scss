@@ -1208,7 +1208,7 @@ th { color: var(--ink-0); font-weight: 600; }
 .archive-item { margin: 0; }
 .archive-link {
   display: grid;
-  grid-template-columns: 80px 1fr;
+  grid-template-columns: 80px 1fr auto;
   gap: 16px; align-items: baseline;
   padding: 10px 14px;
   border-radius: var(--r-sm);
@@ -1224,6 +1224,12 @@ th { color: var(--ink-0); font-weight: 600; }
 }
 .archive-date { font-family: var(--f-mono); font-size: 0.78rem; color: var(--ink-3); }
 .archive-name { font-family: var(--f-display); font-size: 1rem; color: var(--ink-0); }
+.archive-venue {
+  font-family: var(--f-mono); font-size: 0.72rem;
+  color: var(--ink-3); letter-spacing: .02em;
+  white-space: nowrap; text-align: right;
+}
+.archive-link:hover .archive-venue { color: var(--accent); }
 .archive-cat {
   font-family: var(--f-mono);
   font-size: 0.68rem;
