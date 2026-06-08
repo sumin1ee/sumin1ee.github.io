@@ -1,7 +1,7 @@
 ---
 title: "TopoLogic — An Interpretable Pipeline for Lane Topology Reasoning"
 subtitle: "Paper review · improving topology along two tracks — geometric distance and query similarity."
-date: 2026-06-08 19:00:00 +0900
+date: 2026-06-08 09:00:00 +0900
 categories: [Lane Topology Reasoning]
 venue: "NeurIPS 2024"
 tags: [lane-topology-reasoning, autonomous-driving, graph-neural-network]
