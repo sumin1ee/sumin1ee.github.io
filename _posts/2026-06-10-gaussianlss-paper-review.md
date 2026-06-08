@@ -114,6 +114,21 @@ $$
 \mu_{3d} = \sum_i P_i(p)\, p_i^{3d}, \qquad \Sigma = \sum_i P_i(p)\,(p_i^{3d} - \mu_{3d})(p_i^{3d} - \mu_{3d})^\top
 $$
 
+코드(`GaussianLSS/model/GaussianLSS.py`의 `pred_depth()`)도 정확히 이 두 줄이다 — depth를 softmax해 확률을 만들고, 3D 좌표를 그 확률로 가중평균하면 mean, 평균에서의 편차(`delta_3d`)의 외적을 가중합하면 covariance다.
+
+```python
+# GaussianLSS/model/GaussianLSS.py — pred_depth()
+depth_prob = depth.softmax(1)                                   # P_i(p)
+pred_coords_3d = (depth_prob.unsqueeze(-1) * coords_3d).sum(1)   # μ_3d = Σ P_i · p_i^3d
+
+delta_3d = pred_coords_3d.unsqueeze(1) - coords_3d
+cov = (depth_prob[...,None,None] * (delta_3d.unsqueeze(-1) @ delta_3d.unsqueeze(-2))).sum(1)  # Σ
+scale = (self.error_tolerance ** 2) / 9
+cov = cov * scale                                               # k로 covariance 스케일
+```
+
+마지막 두 줄을 눈여겨보자. covariance에 $$\text{(error\_tolerance)}^2/9$$를 곱한다. 앞서 말한 error tolerance 계수 $$k$$가 <strong>여기서 covariance의 크기로 들어간다</strong> — $$/9$$는 $$3\sigma$$ 규약($$(k/3)^2$$)에서 온 것으로, "$$k\sigma$$ 범위를 covariance로 환산"하는 장치다. 즉 $$[\mu-k\sigma, \mu+k\sigma]$$라는 soft 범위가 추상적 비유가 아니라 이 한 줄의 스케일링으로 실제 구현돼 있다.
+
 여기서 $$\Sigma$$가 바로 <strong>depth 불확실성의 3D 번역</strong>이다. depth 분포가 한 bin에 뾰족하게 몰리면 $$p_i^{3d}$$들이 한 점에 모여 $$\Sigma$$가 작아지고, 분포가 넓게 퍼지면 $$p_i^{3d}$$들이 ray를 따라 늘어서 $$\Sigma$$가 그 방향으로 길쭉해진다. 즉 <strong>covariance의 주축이 ray 방향과 정렬</strong>되며, 그 길이가 depth 불확실성의 크기다.
 
 > <strong>📐 잠깐 — covariance가 ray를 따라 길쭉해지는 게 핵심이다.</strong> depth가 불확실한 픽셀에서 진짜 모르는 건 "ray 위 어디냐"이지, ray와 수직인 방향(이미지 평면상 위치)이 아니다. 이미지상 위치는 픽셀 좌표로 이미 정해져 있으니까. 그래서 불확실성은 자연히 <em>ray 방향</em>으로만 퍼지고, $$\Sigma$$도 그 방향으로 늘어난 타원체가 된다. 이게 "object extent를 implicit하게 잡는다"는 주장의 실체다 — 멀리 있어 depth가 모호한 물체일수록 Gaussian이 깊이 방향으로 길게 늘어나, 그 물체가 차지할 법한 범위를 자연스럽게 덮는다. (직접 extent를 regression하는 변형은 ablation에서 1.3%p 더 낮았다. 분포에서 유도하는 쪽이 낫다는 것.)
@@ -138,7 +153,21 @@ $$
 
 splatting은 <strong>multi-scale</strong>로 한다(50×50, 100×100, 200×200). 단일 해상도로는 Gaussian 기반 표현이 projection 계열보다 물체 형상을 약간 뭉개는 경향이 있어서, 여러 해상도에서 렌더해 이를 보완한다. 최종 BEV는 200×200 격자로 [−50m, 50m] 범위를 덮는다.
 
-> 🤔 <strong>(사견) opacity가 자연히 sparse해진다 — 단, 실제로 prune하진 않는다.</strong> 저자들이 흘리듯 적은 관찰이 흥미롭다 — 학습이 수렴하면 <strong>Gaussian의 80%가 opacity $$\lt 0.01$$</strong>로 떨어진다(§4.6, Fig. 7). 명시적 sparsity 항으로 누른 것도 아닌데 대부분의 픽셀-Gaussian이 "거의 안 보이는" 상태가 되고, 소수($$\sim$$20%)만 실제로 BEV에 기여한다. 다만 짚어둘 게 있다 — <strong>이건 어디까지나 관찰이지, opacity 임계로 Gaussian을 잘라내는 pruning 단계가 파이프라인에 있는 건 아니다.</strong> (Fig. 5에서 opacity를 거르는 건 시각화용이다.) 그리고 이 논문이 내세우는 속도 2.5배·메모리 0.3배도 이 sparsity에서 오는 게 아니라, projection 계열의 비싼 3D grid 연산을 피하는 <strong>unprojection 방식 자체</strong>에서 온다. 그러니 "opacity로 prune해서 빨라졌다"고 읽으면 틀린다. 그래도 한 가지는 읽힌다 — "픽셀당 하나씩 Gaussian을 찍는다"는 설계가 결과적으로 80%가 죽는 과잉 표현이라는 것. (어차피 대부분 안 쓸 거면 애초에 덜 찍는 구조가 더 깔끔하지 않았을까 — 다만 어느 픽셀이 살아남을지 미리 알 수 없으니 일단 다 찍고 학습이 알아서 죽이게 두는 게 현실적이긴 하다. 명시적 pruning까지 붙였으면 효율 주장이 더 단단했을 텐데, 거기까진 안 갔다.)
+> 🤔 <strong>(사견) opacity는 사실상 pruning 스위치다.</strong> 저자들이 흘리듯 적은 관찰이 흥미롭다 — 학습이 수렴하면 <strong>Gaussian의 80%가 opacity $$\lt 0.01$$</strong>로 떨어진다(§4.6, Fig. 7). 명시적 sparsity 항으로 누른 것도 아닌데 대부분의 픽셀-Gaussian이 "거의 안 보이는" 상태가 되고, 소수($$\sim$$20%)만 실제로 BEV에 기여한다. 그리고 이건 단순 관찰에 그치지 않는다 — 코드를 보면 렌더링 직전에 <strong>opacity가 임계(0.05) 미만인 Gaussian을 실제로 잘라내고(mask) rasterizer에 넘긴다.</strong>
+>
+> ```python
+> # GaussianLSS/model/GaussianLSS.py — GaussianRenderer.forward()
+> mask = (opacities > self.threshold)   # threshold=0.05, 임계 미만은 버림
+> ...
+> rendered_bev, _ = self.rasterizer(
+>     means3D = means3D[i][mask[i]],     # 살아남은 Gaussian만 렌더
+>     colors_precomp = features[i][mask[i]],
+>     opacities = opacities[i][mask[i]],
+>     cov3D_precomp = cov3D[i][mask[i]],
+> )
+> ```
+>
+> 즉 "픽셀당 하나씩 Gaussian을 찍는다"는 설계가 결과적으로 80%가 죽는 과잉 표현이고, 그 죽은 Gaussian을 opacity 마스킹으로 실제로 걷어낸다. (어차피 대부분 버릴 거면 애초에 덜 찍는 구조가 더 깔끔하지 않았을까 — 다만 어느 픽셀이 살아남을지 미리 알 수 없으니 일단 다 찍고 학습이 알아서 죽이게 둔 뒤 임계로 거르는 게 현실적이긴 하다. 효율 수치의 일부는 여기서 온다.)
 
 <br>
 
@@ -311,6 +340,21 @@ $$
 \mu_{3d} = \sum_i P_i(p)\, p_i^{3d}, \qquad \Sigma = \sum_i P_i(p)\,(p_i^{3d} - \mu_{3d})(p_i^{3d} - \mu_{3d})^\top
 $$
 
+The code (`pred_depth()` in `GaussianLSS/model/GaussianLSS.py`) is exactly these two lines — softmax the depth into probabilities, take the probability-weighted average of the 3D coordinates for the mean, and the probability-weighted sum of outer products of the deviation (`delta_3d`) for the covariance.
+
+```python
+# GaussianLSS/model/GaussianLSS.py — pred_depth()
+depth_prob = depth.softmax(1)                                   # P_i(p)
+pred_coords_3d = (depth_prob.unsqueeze(-1) * coords_3d).sum(1)   # μ_3d = Σ P_i · p_i^3d
+
+delta_3d = pred_coords_3d.unsqueeze(1) - coords_3d
+cov = (depth_prob[...,None,None] * (delta_3d.unsqueeze(-1) @ delta_3d.unsqueeze(-2))).sum(1)  # Σ
+scale = (self.error_tolerance ** 2) / 9
+cov = cov * scale                                               # scale covariance by k
+```
+
+Note the last two lines: the covariance is multiplied by $$\text{(error\_tolerance)}^2/9$$. The error-tolerance coefficient $$k$$ mentioned earlier <strong>enters here as the size of the covariance</strong> — the $$/9$$ comes from the $$3\sigma$$ convention ($$(k/3)^2$$), converting the "$$k\sigma$$ range" into a covariance. So the soft range $$[\mu-k\sigma, \mu+k\sigma]$$ isn't an abstract metaphor; it's implemented by this one scaling line.
+
 $$\Sigma$$ is the <strong>3D translation of depth uncertainty</strong>. If the depth distribution is peaked on one bin, the $$p_i^{3d}$$ cluster to a point and $$\Sigma$$ is small; if it's spread out, the $$p_i^{3d}$$ line up along the ray and $$\Sigma$$ elongates in that direction. So <strong>the covariance's principal axis aligns with the ray</strong>, and its length is the magnitude of the depth uncertainty.
 
 > <strong>📐 A quick aside — the covariance elongating along the ray is the whole point.</strong> For a pixel with uncertain depth, what's truly unknown is "where along the ray," not the direction perpendicular to it (its image-plane position) — that's already fixed by the pixel coordinate. So the uncertainty naturally spreads only along the <em>ray direction</em>, and $$\Sigma$$ becomes an ellipsoid stretched that way. That's the substance behind "captures object extent implicitly" — the farther and more depth-ambiguous the object, the longer the Gaussian stretches in depth, naturally covering the range it might occupy. (A variant that regresses extent directly was 1.3%p lower in the ablation — deriving from the distribution wins.)
@@ -335,7 +379,21 @@ The point is that $$\Sigma_i$$ enters the weighting directly. An elongated (unce
 
 Splatting is done <strong>multi-scale</strong> (50×50, 100×100, 200×200). At a single resolution, Gaussian-based representations tend to distort object shapes a bit more than projection methods, so rendering at several scales compensates. The final BEV is a 200×200 grid covering [−50m, 50m].
 
-> 🤔 <strong>(My take) opacity goes sparse on its own — but it isn't actually pruned.</strong> An observation the authors drop almost in passing is striking — once training converges, <strong>80% of the Gaussians fall to opacity $$\lt 0.01$$</strong> (§4.6, Fig. 7). Without any explicit sparsity penalty, most pixel-Gaussians become "nearly invisible," and only a minority ($$\sim$$20%) actually contribute to the BEV. But one caveat — <strong>this is purely an observation; there is no pruning step in the pipeline that removes low-opacity Gaussians by a threshold.</strong> (The opacity filtering in Fig. 5 is for visualization.) And the paper's headline 2.5× speed / 0.3× memory don't come from this sparsity either — they come from the <strong>unprojection approach itself</strong>, which avoids the expensive 3D-grid operations of projection methods. So reading it as "it got faster by pruning via opacity" is wrong. Still, one thing does come through — that "one Gaussian per pixel" ends up an over-representation where 80% die off. (If most won't be used anyway, wouldn't a structure that stamps fewer to begin with be cleaner? — though, since you can't know in advance which pixels survive, stamping all and letting training kill them off is the pragmatic move. An explicit pruning step would have made the efficiency claim sturdier, but they didn't go there.)
+> 🤔 <strong>(My take) opacity effectively acts as a pruning switch.</strong> An observation the authors drop almost in passing is striking — once training converges, <strong>80% of the Gaussians fall to opacity $$\lt 0.01$$</strong> (§4.6, Fig. 7). Without any explicit sparsity penalty, most pixel-Gaussians become "nearly invisible," and only a minority ($$\sim$$20%) actually contribute to the BEV. And this isn't just an observation — in the code, right before rendering, <strong>Gaussians below an opacity threshold (0.05) are actually masked out and not passed to the rasterizer.</strong>
+>
+> ```python
+> # GaussianLSS/model/GaussianLSS.py — GaussianRenderer.forward()
+> mask = (opacities > self.threshold)   # threshold=0.05; below it is dropped
+> ...
+> rendered_bev, _ = self.rasterizer(
+>     means3D = means3D[i][mask[i]],     # render only the survivors
+>     colors_precomp = features[i][mask[i]],
+>     opacities = opacities[i][mask[i]],
+>     cov3D_precomp = cov3D[i][mask[i]],
+> )
+> ```
+>
+> So "one Gaussian per pixel" ends up an over-representation where 80% die off, and the dead ones are actually swept away by the opacity mask. (If most will be discarded anyway, wouldn't a structure that stamps fewer to begin with be cleaner? — though, since you can't know in advance which pixels survive, stamping all, letting training kill them off, then filtering by threshold is the pragmatic move. Part of the efficiency comes from here.)
 
 <br>
 
