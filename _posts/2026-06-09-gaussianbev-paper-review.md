@@ -1,7 +1,7 @@
 ---
 title: "GaussianBeV — 3D Gaussian Representation Meets Perception Models for BeV Segmentation"
 subtitle: "Paper review · turning every pixel into an oriented 3D Gaussian, then splatting them into the BEV plane."
-date: 2026-06-09 09:00:00 +0900
+date: 2026-06-08 17:00:00 +0900
 categories: [Gaussian Splatting for BEV Perception]
 venue: "WACV 2025"
 tags: [gaussian-splatting, bev-perception, autonomous-driving, semantic-segmentation]
