@@ -42,6 +42,10 @@ layout: default
       {%- endif -%}
     </div>
 
+    {%- if page.comments != false -%}
+      {% include comments.html %}
+    {%- endif -%}
+
     <footer class="post-foot">
       <a href="{{ '/posts/' | relative_url }}" class="back-link"><i class="fas fa-arrow-left"></i> all posts</a>
     </footer>

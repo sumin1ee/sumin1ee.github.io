@@ -1,0 +1,50 @@
+<!-- giscus comments — GitHub Discussions backed. Theme follows the site's data-theme toggle. -->
+<section class="comments" aria-label="Comments">
+  <h2 class="comments-title">comments</h2>
+  <div class="giscus"></div>
+</section>
+
+<script>
+(function () {
+  // Map the site's data-theme ("dark"/"light") to a giscus theme preset.
+  function giscusTheme() {
+    var t = document.documentElement.getAttribute('data-theme') || 'dark';
+    return t === 'light' ? 'light' : 'dark_dimmed';
+  }
+
+  // Initial load of the giscus widget.
+  var s = document.createElement('script');
+  s.src = 'https://giscus.app/client.js';
+  s.async = true;
+  s.crossOrigin = 'anonymous';
+  s.setAttribute('data-repo', 'sumin1ee/sumin1ee.github.io');
+  s.setAttribute('data-repo-id', 'R_kgDOK_lrVw');
+  s.setAttribute('data-category', 'Announcements');
+  s.setAttribute('data-category-id', 'DIC_kwDOK_lrV84C-wCV');
+  s.setAttribute('data-mapping', 'pathname');
+  s.setAttribute('data-strict', '0');
+  s.setAttribute('data-reactions-enabled', '1');
+  s.setAttribute('data-emit-metadata', '0');
+  s.setAttribute('data-input-position', 'bottom');
+  s.setAttribute('data-theme', giscusTheme());
+  s.setAttribute('data-lang', 'ko');
+  document.querySelector('.giscus').appendChild(s);
+
+  // Push theme changes into the giscus iframe when the site toggle flips.
+  function sendTheme() {
+    var frame = document.querySelector('iframe.giscus-frame');
+    if (!frame) return;
+    frame.contentWindow.postMessage(
+      { giscus: { setConfig: { theme: giscusTheme() } } },
+      'https://giscus.app'
+    );
+  }
+
+  var observer = new MutationObserver(function (mutations) {
+    for (var i = 0; i < mutations.length; i++) {
+      if (mutations[i].attributeName === 'data-theme') { sendTheme(); break; }
+    }
+  });
+  observer.observe(document.documentElement, { attributes: true });
+})();
+</script>
