@@ -1,6 +1,6 @@
 ---
 title: "TopoPoint — Enhance Topology Reasoning via Endpoint Detection in Autonomous Driving"
-subtitle: "Paper review · endpoint를 lane에 딸린 부산물이 아니라, 따로 검출하는 일급 객체로 끌어올린다."
+subtitle: "Paper review · endpoint를 명시적으로 detection하자."
 date: 2026-06-09 10:00:00 +0900
 categories: [Lane Topology Reasoning]
 venue: "NeurIPS 2025"
