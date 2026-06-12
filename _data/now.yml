@@ -1,7 +1,7 @@
 # What I'm working on, currently. Edit this when things change.
 items:
   - "ECCV 2026 submission on Gaussian Splatting for autonomous driving (under review)"
-  - "NeurIPS 2026 submission on Online Mapping (under review)"
+  - "NeurIPS 2026 submission on Online Vectorized HD Map Construction (under review)"
   - "Lane Topology Reasoning, targeting AAAI 2027 (in progress)"
   - "Gaussian Splatting for BEV Perception, targeting ICLR 2027 (in progress)"
   - "Driving World Model, targeting ICLR 2027 (in progress)"

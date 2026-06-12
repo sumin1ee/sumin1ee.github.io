@@ -4,7 +4,7 @@ tagline: Research notebook on vision-centric autonomous driving.
 description: >-
   Open research notebook of Sumin Lee — MS researcher at the Intelligent
   Robotics & Computer Vision Lab, Hanyang University. Notes on Gaussian
-  Splatting, Online Mapping, and end-to-end driving.
+  Splatting, online vectorized HD map construction, and end-to-end driving.
 url: "https://sumin1ee.github.io"
 baseurl: ""
 lang: en
