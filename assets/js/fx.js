@@ -150,6 +150,7 @@
   // perception range and accumulate behind the car. Sections are crosswalks.
   function onlineMap() {
     if (!window.matchMedia('(min-width: 1100px)').matches) return;
+    if (document.querySelector('.post-content')) return;   // not on posts: it would sit on the table of contents
 
     const hud = document.createElement('aside');
     hud.className = 'bev-hud';
@@ -182,11 +183,9 @@
     // sections → crosswalks at their document position
     let crossings = [];
     const layout = () => {
-      // home/cv sections, or a post's h2 headings (hidden language blocks skipped)
-      const els = [...document.querySelectorAll('.section, .hero, .post-content h2')]
-        .filter((el) => el.offsetParent !== null);
+      const els = [...document.querySelectorAll('.section, .hero')].filter((el) => el.offsetParent !== null);
       crossings = els.map((el) => {
-        const t = el.matches('h2') ? el : el.querySelector('.section-title');
+        const t = el.querySelector('.section-title');
         return {
           s: (el.getBoundingClientRect().top + window.scrollY) * K,
           name: t ? (t.getAttribute('aria-label') || t.textContent).trim()
@@ -285,9 +284,9 @@
     const tick = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; draw(); }); } };
     window.addEventListener('scroll', tick, { passive: true });
     window.addEventListener('resize', () => { layout(); tick(); });
-    // theme switch re-tints; switching a post's language swaps which headings exist
+    // a theme switch re-tints the map
     new MutationObserver(() => { layout(); tick(); })
-      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-post-lang'] });
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     // give titles a moment to settle (diffusion swaps their text) before labeling crossings
     layout(); draw();
     setTimeout(() => { layout(); draw(); }, 1500);
