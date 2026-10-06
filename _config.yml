@@ -12,6 +12,8 @@ timezone: Asia/Seoul
 
 # Analytics — GoatCounter (cookieless). Dashboard: https://sumin1ee.goatcounter.com
 goatcounter: sumin1ee
+# Google Analytics 4 — same property as /cv, so both sites share one dashboard.
+gtag: "G-VZR834C2H2"
 
 # ─── Author ──────────────────────────────────────────────────────────────
 author:
