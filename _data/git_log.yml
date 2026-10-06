@@ -3,27 +3,11 @@
 # Refs render in (parens), like real `git log --decorate`.
 
 commits:
-  - hash: "f3a9c07"
-    date: "2026-09-25"
-    author: "sumin1ee"
-    refs: ["HEAD", "main", "tag: neurips-2026"]
-    msg: "🎉 ReSMap accepted at NeurIPS 2026 — online HD map construction with satellite priors (co-first author)"
-
-  - hash: "7e1d40a"
-    date: "2026-05-06"
-    author: "sumin1ee"
-    msg: "submit a mapping paper to NeurIPS 2026 — first author (double-blind, name withheld)"
-
-  - hash: "a8f3c2d"
-    date: "2026-03-05"
-    author: "sumin1ee"
-    msg: "submit a reconstruction paper to ECCV 2026 — first author (double-blind, name withheld)"
-
   - hash: "c4e7a91"
     date: "2025-06-12"
     author: "sumin1ee"
-    refs: ["CVPR-2025-WAD"]
-    msg: "🥉 3rd place — Waymo Open Dataset E2E Driving Challenge (CVPR 2025)"
+    refs: ["HEAD", "main", "CVPR-2025-WAD"]
+    msg: "🥉 3rd place at the Waymo Open Dataset E2E Driving Challenge (CVPR 2025)"
 
   - hash: "2b8d05f"
     date: "2025-03-02"
@@ -35,17 +19,17 @@ commits:
     date: "2025-02-21"
     author: "sumin1ee"
     refs: ["tag: bs-done"]
-    msg: "graduate BS — Automotive Engineering, Hanyang (GPA 4.03 / 4.5)"
+    msg: "graduate BS in Automotive Engineering, Hanyang (GPA 4.03 / 4.5)"
 
   - hash: "5dc0f82"
     date: "2024-11-14"
     author: "sumin1ee"
-    msg: "first 3DGS prototype on driving scenes — and so it begins"
+    msg: "first 3DGS prototype on driving scenes. and so it begins"
 
   - hash: "0e6b29d"
     date: "2024-09-30"
     author: "sumin1ee"
-    msg: "🏆 Capstone Design — top 3 of 30 teams, sole solo entry"
+    msg: "🏆 Capstone Design: top 3 of 30 teams, sole solo entry"
 
   - hash: "1f47b6e"
     date: "2024-05-16"

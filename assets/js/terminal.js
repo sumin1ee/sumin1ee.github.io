@@ -72,6 +72,45 @@
 
   const clear = () => { history.innerHTML = ''; };
 
+  // ------------------------------ jobs -----------------------------------
+  // Animated / interactive commands (train, render, drive, ...) write into a
+  // live block and run as a job. Ctrl+C / Esc (or q for interactive jobs)
+  // stops it; an interactive job also gets first dibs on keystrokes.
+  let job = null;
+
+  const live = (cls = '') => {
+    const el = document.createElement('div');
+    el.className = 'term-out ' + cls;
+    history.appendChild(el);
+    return el;
+  };
+
+  // Run `step` every `ms` until it returns false or the job is interrupted.
+  // opts: { onKey(e) -> handled?, interactive, onStop() }
+  const runJob = (ms, step, opts = {}) => {
+    const id = setInterval(() => {
+      if (step() === false) finish();
+      scrollDown();
+    }, ms);
+    const finish = () => {
+      clearInterval(id);
+      if (job && job.id === id) job = null;
+    };
+    job = { id, onKey: opts.onKey, interactive: !!opts.interactive, stop: () => { finish(); if (opts.onStop) opts.onStop(); } };
+  };
+
+  const interrupt = () => {
+    if (!job) return false;
+    const j = job;
+    job = null;
+    j.stop();
+    writeOut('<span class="t-dim">^C</span>');
+    scrollDown();
+    return true;
+  };
+
+  const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+
   // ------------------------------ filesystem -----------------------------
   // Top-level directories under ~ (cv is an external link, not a dir).
   const TOP_DIRS = ['about', 'now', 'reading', 'posts', 'contact'];
@@ -84,7 +123,7 @@
 
     // ~  →  top-level dirs
     if (path.length === 0) {
-      return { dirs: TOP_DIRS.slice(), files: [{ name: 'cv', url: INDEX.site.author.cv, external: true }] };
+      return { dirs: TOP_DIRS.filter((d) => d !== 'now' || (INDEX.now && INDEX.now.length)), files: [{ name: 'cv', url: INDEX.site.author.cv, external: true }] };
     }
 
     const head = path[0];
@@ -154,7 +193,7 @@
         ['whoami',         'who runs this place'],
         ['pwd',            'print working directory'],
         ['ls [dir]',       'list the current (or given) directory'],
-        ['cd <dir>',       'change directory — try cd reading, cd .., cd ~'],
+        ['cd <dir>',       'change directory (try cd reading, cd .., cd ~)'],
         ['cat <file>',     'read a section: about, contact, now, affiliation'],
         ['find <pattern>', 'search posts + reading list (case-insensitive substring)'],
         ['git log',        'commit log of my research life'],
@@ -162,6 +201,12 @@
         ['theme [mode]',   'toggle, or set: theme dark | theme light'],
         ['clear',          'clear the terminal'],
         ['date',           'current server time'],
+        ['train [epochs]', 'train a (very fake) model'],
+        ['render',         'spin up a 3D gaussian donut'],
+        ['drive',          'online mapping mini game (arrow keys)'],
+        ['diffuse <text>', 'denoise your text from pure noise'],
+        ['neofetch',       'system info, grad student edition'],
+        ['ping sumin',     'check if I am awake'],
       ];
       const rendered = rows
         .map((r) => `  <span class="t-cmd">${r[0].padEnd(18)}</span><span class="t-desc">${r[1]}</span>`)
@@ -172,7 +217,7 @@
     },
 
     whoami: () =>
-      `<span class="t-strong">${INDEX.site.author.name}</span> — MS researcher · vision-centric autonomous driving<br>` +
+      `<span class="t-strong">${INDEX.site.author.name}</span> · MS researcher · vision-centric autonomous driving<br>` +
       `<span class="t-dim">${INDEX.site.author.affiliation}</span>`,
 
     pwd: () => '/home/sumin1ee' + (cwd.length ? '/' + cwd.join('/') : ''),
@@ -186,7 +231,7 @@
       // A leaf like ~/about has no children to enter — cat it instead.
       const here = listDir(next);
       if (here && here.leaf) {
-        return `<span class="t-dim">${escapeHtml('~/' + next.join('/'))} is a leaf — try </span>` +
+        return `<span class="t-dim">${escapeHtml('~/' + next.join('/'))} is a leaf. try </span>` +
                `<span class="t-cmd">cat ${escapeHtml(here.leaf)}</span>`;
       }
       cwd = next;
@@ -203,7 +248,7 @@
       const d = listDir(path);
       if (!d) return `<span class="t-err">ls: cannot access that path</span>`;
       if (d.leaf) {
-        return `<span class="t-dim">(leaf — </span><span class="t-cmd">cat ${escapeHtml(d.leaf)}</span><span class="t-dim">)</span>`;
+        return `<span class="t-dim">(leaf: </span><span class="t-cmd">cat ${escapeHtml(d.leaf)}</span><span class="t-dim">)</span>`;
       }
       const dirs = d.dirs.map((n) => `<span class="t-dir">${escapeHtml(n)}/</span>`);
       const files = d.files.map((f) =>
@@ -325,7 +370,7 @@
       }
 
       root.setAttribute('data-theme', next);
-      try { localStorage.setItem('theme', next); } catch (e) {}
+      try { localStorage.setItem('theme-v2', next); } catch (e) {}
       return `theme → ${next}`;
     },
 
@@ -335,14 +380,14 @@
 
     git: (arg) => {
       const sub = (arg || '').trim().split(/\s+/)[0].toLowerCase();
-      if (!sub) return `<span class="t-dim">usage: git &lt;command&gt; — try <span class="t-cmd">git log</span></span>`;
+      if (!sub) return `<span class="t-dim">usage: git &lt;command&gt;. try <span class="t-cmd">git log</span></span>`;
       if (sub === 'log') return gitLog();
       if (sub === 'status') {
         return `On branch <span class="t-cmd">main</span><br>` +
                `Your research is ahead of 'origin/main' by 2 papers.<br>` +
                `<span class="t-dim">  (use "git push" to publish)</span><br><br>` +
                `Changes not staged for commit:<br>` +
-               `  <span class="t-err">modified:</span>   CamoSplat.tex<br>` +
+               `  <span class="t-err">modified:</span>   under_review.tex<br>` +
                `  <span class="t-err">modified:</span>   ReSMap.tex<br>` +
                `  <span class="t-err">untracked:</span>  next-idea.md`;
       }
@@ -353,13 +398,303 @@
       return `<span class="t-err">git: '${escapeHtml(sub)}' is not a supported command here. Try <span class="t-cmd">git log</span>.</span>`;
     },
 
+    // ---- ML toys ----------------------------------------------------------
+
+    // Fake training run: tqdm-ish bar, per-epoch log, ASCII loss curve.
+    // Occasionally dies of CUDA OOM, as is tradition.
+    train: (arg) => {
+      const E = Math.min(30, Math.max(1, parseInt(arg, 10) || 8));
+      const oomAt = Math.random() < 0.18 ? 1 + ((Math.random() * E) | 0) : -1;
+      writeOut(
+        `<span class="t-dim">$ python tools/train.py configs/toy_bev.py --epochs ${E}</span><br>` +
+        `loading nuScenes v1.0-trainval · 28,130 samples · 6 cams<br>` +
+        `model: TinyBEV-R50 · 41.2M params · 8 × GPU · batch 4<br>` +
+        `<span class="t-dim">(Ctrl+C to stop)</span>`
+      );
+      const bar = live('t-pre');
+      const log = live('t-pre');
+      const STEPS = 20, hist = [];
+      let ep = 1, st = 0, map = 0, loss = 2.6 + Math.random() * 0.3;
+      runJob(45, () => {
+        st++;
+        loss = Math.max(0.06, loss * (0.985 - Math.random() * 0.01) + (Math.random() - 0.5) * 0.03);
+        if (ep === oomAt && st === 13) {
+          bar.innerHTML = '';
+          log.innerHTML += `<span class="t-err">RuntimeError: CUDA out of memory. Tried to allocate 2.00 GiB ` +
+            `(GPU 0; 23.65 GiB total capacity; 21.93 GiB already allocated)</span>\n` +
+            `<span class="t-dim">tip: batch_size=1 and a small prayer 🙏  (run train again)</span>`;
+          return false;
+        }
+        const w = 24, fill = Math.round((st / STEPS) * w);
+        bar.innerHTML = `epoch ${String(ep).padStart(2)}/${E} <span class="t-cmd">${'█'.repeat(fill)}</span>` +
+          `${'░'.repeat(w - fill)} ${String(Math.round((st / STEPS) * 100)).padStart(3)}%  ` +
+          `loss ${loss.toFixed(4)}  ${(4.6 + Math.random()).toFixed(1)}it/s`;
+        if (st < STEPS) return;
+        map = 30 + 32 * (1 - Math.exp(-ep / 3.5)) + Math.random();
+        hist.push(loss);
+        log.innerHTML += `epoch ${String(ep).padStart(2)}/${E}  loss ${loss.toFixed(4)}  val mAP ${map.toFixed(1)}\n`;
+        st = 0; ep++;
+        if (ep <= E) return;
+        bar.innerHTML = '';
+        log.innerHTML += '\n' + lossPlot(hist) +
+          `\n\n<span class="t-cmd">✓</span> saved ckpt/epoch_${E}.pth · val mAP ${map.toFixed(1)} ` +
+          `<span class="t-dim">(reviewer 2 wants more ablations)</span>`;
+        return false;
+      });
+      return '';
+    },
+
+    // A spinning torus made of 3D gaussians, rasterized to ASCII (donut.c tribute).
+    render: () => {
+      const W = 58, H = 22, N = 4200, SH = '.,-~:;=!*#$@';
+      const g = [];
+      for (let i = 0; i < N; i++) {
+        const u = Math.random() * Math.PI * 2, v = Math.random() * Math.PI * 2;
+        const R = 2, r = 0.95, cv = Math.cos(v);
+        g.push([(R + r * cv) * Math.cos(u), r * Math.sin(v), (R + r * cv) * Math.sin(u),
+                cv * Math.cos(u), Math.sin(v), cv * Math.sin(u)]);
+      }
+      const hud = live();
+      const el = live('t-pre t-render');
+      let A = 0.9, B = 0, f = 0, last = performance.now(), fps = 0;
+      runJob(55, () => {
+        const zb = new Float32Array(W * H), lum = new Int8Array(W * H).fill(-1);
+        const cA = Math.cos(A), sA = Math.sin(A), cB = Math.cos(B), sB = Math.sin(B);
+        for (const [x, y, z, nx, ny, nz] of g) {
+          const y1 = y * cA - z * sA, z1 = y * sA + z * cA;
+          const x2 = x * cB + z1 * sB, z2 = -x * sB + z1 * cB;
+          const ny1 = ny * cA - nz * sA, nz1 = ny * sA + nz * cA;
+          const nz2 = -nx * sB + nz1 * cB;
+          const D = 1 / (z2 + 6);
+          const px = Math.round(W / 2 + x2 * D * W * 0.95), py = Math.round(H / 2 - y1 * D * H * 0.95);
+          if (px < 0 || px >= W || py < 0 || py >= H) continue;
+          const k = py * W + px;
+          if (D > zb[k]) {
+            zb[k] = D;
+            const L = (ny1 - nz2) * 0.7071; // light from above, towards the viewer
+            lum[k] = Math.max(0, Math.min(SH.length - 1, Math.round(L * (SH.length - 1))));
+          }
+        }
+        let out = '';
+        for (let r = 0; r < H; r++) {
+          for (let c = 0; c < W; c++) { const l = lum[r * W + c]; out += l < 0 ? ' ' : SH[l]; }
+          out += '\n';
+        }
+        el.textContent = out;
+        const now = performance.now();
+        fps = 0.9 * fps + 0.1 * (1000 / (now - last)); last = now;
+        hud.innerHTML = `<span class="t-dim">3DGS viewer · ${N.toLocaleString()} gaussians · ${fps.toFixed(0)} fps · Esc to stop</span>`;
+        A += 0.07; B += 0.035;
+        return ++f < 360;
+      });
+      return '';
+    },
+
+    // Online-mapping mini game: steer the ego car; the map only exists
+    // where you've already "perceived" it. Everything else is fog.
+    drive: () => {
+      const W = 33, H = 17, CAR = H - 3, RANGE = 8;
+      const cxAt = (s) => Math.round(W / 2 + 5 * Math.sin(s / 9) + 2 * Math.sin(s / 4.3));
+      const cars = [];
+      for (let k = 16; k < 6000; k += 5 + ((Math.random() * 7) | 0)) cars.push({ s: k, lane: ((Math.random() * 3) | 0) - 1 });
+      let s = 0, x = cxAt(0), speed = 1, acc = 0, dead = null;
+
+      writeOut(`<span class="t-dim">online mapping sim · perception range ${RANGE * 2} m · fog = not mapped yet<br>` +
+               `← → steer · ↑ ↓ speed · q quit</span>`);
+      const el = live('t-pre t-drive');
+
+      const draw = () => {
+        const rows = [];
+        for (let r = 0; r < H; r++) {
+          const ahead = CAR - r, ws = s + ahead, c = cxAt(ws);
+          let line = '';
+          for (let col = 0; col < W; col++) {
+            const d = col - c;
+            if (r === CAR && col === x) { line += `<span class="t-cmd t-strong">${dead ? 'X' : 'A'}</span>`; continue; }
+            if (ahead > RANGE) { line += (col + r) % 3 === 0 ? '<span class="t-fog">.</span>' : ' '; continue; }
+            const car = cars.find((o) => o.s === ws && cxAt(o.s) + o.lane * 4 === col);
+            if (car) { line += '<span class="t-err">#</span>'; continue; }
+            // freshly perceived rows at the edge of range flicker like new predictions
+            const fresh = ahead >= RANGE - 1 && Math.random() < 0.35;
+            if (d === -6 || d === 6) line += fresh ? '<span class="t-dim">!</span>' : '|';
+            else if ((d === -2 || d === 2) && ws % 2 === 0) line += `<span class="t-cmd">${fresh ? '.' : ':'}</span>`;
+            else line += ' ';
+          }
+          rows.push(line);
+        }
+        const meters = s * 2;
+        rows.push('');
+        rows.push(`speed ${'▮'.repeat(speed)}${'▯'.repeat(3 - speed)}  ${String(meters).padStart(4)} m  ` +
+                  `map ${s + RANGE} rows · ${Math.floor((s + RANGE) / 2) * 3 + 2} inst`);
+        el.innerHTML = rows.join('\n');
+      };
+
+      runJob(90, () => {
+        if (dead) return false;
+        acc += speed * 0.5;
+        while (acc >= 1) {
+          acc -= 1; s++;
+          if (Math.abs(x - cxAt(s)) >= 6) dead = 'offroad';
+          else if (cars.some((o) => o.s === s && cxAt(o.s) + o.lane * 4 === x)) dead = 'crash';
+          if (dead) break;
+        }
+        draw();
+        if (!dead) return;
+        writeOut(dead === 'crash'
+          ? `💥 crash at ${s * 2} m. the planner has notes. <span class="t-dim">(drive to retry)</span>`
+          : `🌾 off-road at ${s * 2} m. should have trusted the centerline. <span class="t-dim">(drive to retry)</span>`);
+        return false;
+      }, {
+        interactive: true,
+        onKey: (e) => {
+          if (e.key === 'ArrowLeft') x--;
+          else if (e.key === 'ArrowRight') x++;
+          else if (e.key === 'ArrowUp') speed = Math.min(3, speed + 1);
+          else if (e.key === 'ArrowDown') speed = Math.max(0, speed - 1);
+          else return false;
+          draw();
+          return true;
+        },
+      });
+      draw();
+      return '';
+    },
+
+    // Denoise any text, DDPM-style.
+    diffuse: (arg) => {
+      const text = (arg || 'hello, world').slice(0, 80);
+      const T = 24, NOISE = '░▒▓█#%&@$*+=?/<>~^01';
+      const at = [...text].map((ch) => (ch === ' ' ? -1 : Math.random() * 0.85));
+      const el = live('t-pre');
+      let f = 0;
+      runJob(55, () => {
+        const p = f / T;
+        if (f++ >= T) {
+          el.innerHTML = `<span class="t-dim">t=   0</span>  <span class="t-cmd">${escapeHtml(text)}</span>  <span class="t-dim">(${T} steps)</span>`;
+          return false;
+        }
+        const s = [...text].map((ch, i) =>
+          at[i] < 0 || p >= at[i] + 0.15 ? escapeHtml(ch) : `<span class="t-dim">${escapeHtml(pick(NOISE))}</span>`
+        ).join('');
+        el.innerHTML = `<span class="t-dim">t=${String(Math.round((1 - p) * 1000)).padStart(4)}</span>  ${s}`;
+      });
+      return '';
+    },
+
+    neofetch: () => {
+      const art = gaussArt();
+      const a = INDEX.site.author || {};
+      const years = (Date.now() - new Date('2019-03-04').getTime()) / (365.25 * 864e5);
+      const papers = (INDEX.reading || []).length, posts = (INDEX.posts || []).length;
+      const theme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const kv = (k, v) => `<span class="t-cmd">${k.padEnd(9)}</span>${v}`;
+      const info = [
+        `<span class="t-cmd">sumin</span>@<span class="t-cmd">ircv-lab</span>`,
+        '─'.repeat(22),
+        kv('os', 'Hanyang Univ. · MS, Automotive Eng.'),
+        kv('host', 'IRCV Lab'),
+        kv('kernel', 'pytorch + cuda, fueled by ☕'),
+        kv('uptime', `${Math.floor(years)} yrs ${Math.floor((years % 1) * 12)} mos (since 2019-03)`),
+        kv('packages', `${posts} posts · ${papers} papers on the shelf`),
+        kv('shell', 'zsh (you are in it)'),
+        kv('research', '3DGS · online HD maps · e2e driving'),
+        kv('gpu', '1× very tired GPU'),
+        kv('theme', theme),
+        '',
+        ['--accent', '--accent-warn', '--ink-0', '--ink-2', '--ink-3', '--border-strong']
+          .map((v) => `<span class="nf-sw" style="background:var(${v})"></span>`).join(''),
+      ];
+      const n = Math.max(art.length, info.length);
+      const lines = [];
+      for (let i = 0; i < n; i++) {
+        lines.push(`<span class="t-cmd">${escapeHtml(art[i] || ' '.repeat(art[0].length))}</span>   ${info[i] || ''}`);
+      }
+      return `<div class="t-pre">${lines.join('\n')}</div>`;
+    },
+
+    vim: () => {
+      vimMode = true;
+      return Array(5).fill('<span class="t-cmd">~</span>').join('<br>') +
+        `<br><span class="t-dim">"untitled.tex" [New File]</span>` +
+        `<br><span class="t-dim">you are now in vim. good luck getting out.</span>`;
+    },
+
+    ping: (arg) => {
+      const host = (arg || '').trim().toLowerCase();
+      if (!host) return `<span class="t-dim">usage: ping &lt;host&gt;. try <span class="t-cmd">ping sumin</span></span>`;
+      if (!['sumin', 'sumin1ee', 'sumin-lee'].includes(host)) {
+        return `<span class="t-err">ping: ${escapeHtml(host)}: Name or service not known.</span> ` +
+               `<span class="t-dim">try <span class="t-cmd">ping sumin</span></span>`;
+      }
+      const email = (INDEX.site.author || {}).email || '';
+      const REASONS = ['probably asleep', 'training a model', 'in a lab meeting', 'reading arXiv',
+                       'waiting for a GPU', 'writing a rebuttal', 'debugging a NaN loss'];
+      const el = live();
+      el.innerHTML = 'PING sumin (hanyang.ac.kr) 56(84) bytes of data.';
+      const times = [];
+      runJob(650, () => {
+        if (times.length < 4) {
+          const t = +(0.5 + Math.random() * 5).toFixed(1);
+          times.push(t);
+          el.innerHTML += `<br>64 bytes from sumin: icmp_seq=${times.length} ttl=64 time=${t} hrs ` +
+                          `<span class="t-dim">(${pick(REASONS)})</span>`;
+          return;
+        }
+        const avg = (times.reduce((x, y) => x + y, 0) / times.length).toFixed(1);
+        el.innerHTML += `<br><br>--- sumin ping statistics ---<br>` +
+          `4 packets transmitted, 4 received, 0% packet loss<br>` +
+          `rtt min/avg/max = ${Math.min(...times)}/${avg}/${Math.max(...times)} hrs<br>` +
+          (email ? `<span class="t-dim">lower latency: </span><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a>` : '');
+        return false;
+      });
+      return '';
+    },
+
     // easter eggs
-    sudo: () => `<span class="t-err">sudo: permission denied — this is a static site, friend.</span>`,
+    sudo: () => `<span class="t-err">sudo: permission denied. this is a static site, friend.</span>`,
     rm:   () => `<span class="t-err">rm: nice try.</span>`,
     exit: () => `<span class="t-dim">(close the tab to exit)</span>`,
     hello: () => `hi 👋`,
     coffee: () => `☕`,
   };
+
+  let vimMode = false;
+
+  // Loss-per-epoch as a small ASCII scatter plot.
+  function lossPlot(h) {
+    const H = 6, rep = Math.max(1, Math.floor(36 / h.length));
+    const pts = h.flatMap((v) => Array(rep).fill(v));
+    const lo = Math.min(...h), hi = Math.max(...h);
+    const rows = [];
+    for (let r = H - 1; r >= 0; r--) {
+      const label = r === H - 1 ? hi.toFixed(2) : r === 0 ? lo.toFixed(2) : '';
+      let line = label.padStart(5) + ' |';
+      for (const v of pts) {
+        const y = hi === lo ? 0 : Math.round(((v - lo) / (hi - lo)) * (H - 1));
+        line += y === r ? '<span class="t-cmd">*</span>' : ' ';
+      }
+      rows.push(line);
+    }
+    rows.push('      +' + '-'.repeat(pts.length) + ' epoch');
+    return '<span class="t-dim">train/loss</span>\n' + rows.join('\n');
+  }
+
+  // A rotated anisotropic 2D gaussian, drawn in ASCII density characters.
+  function gaussArt() {
+    const H = 12, W = 26, th = 0.5, c = Math.cos(th), s = Math.sin(th), SH = ' .:-=+*#%@';
+    const out = [];
+    for (let r = 0; r < H; r++) {
+      let line = '';
+      for (let q = 0; q < W; q++) {
+        const x = ((q - W / 2 + 0.5) / W) * 2.2, y = ((r - H / 2 + 0.5) / H) * 2.2;
+        const u = x * c + y * s, v = -x * s + y * c;
+        const g = Math.exp(-((u * u) / (2 * 0.45 ** 2) + (v * v) / (2 * 0.2 ** 2)));
+        line += SH[Math.min(9, Math.round(g * 9))];
+      }
+      out.push(line);
+    }
+    return out;
+  }
 
   function stripMd(s) {
     return escapeHtml(s)
@@ -413,6 +748,7 @@
     open:  ['posts', 'reading', 'cv', 'github', 'home'],
     git:   ['log', 'status', 'blame', 'push', 'pull', 'commit'],
     theme: ['dark', 'light'],
+    ping:  ['sumin'],
   };
 
   // Longest common prefix of a list of strings.
@@ -441,7 +777,8 @@
       const all = Array.from(new Set(COMMAND_NAMES())).sort();
       // On an empty line, only advertise the documented commands (skip the
       // easter eggs); when there's a prefix, complete against everything.
-      const documented = ['help', 'whoami', 'pwd', 'ls', 'cd', 'cat', 'find', 'git', 'open', 'theme', 'clear', 'date'];
+      const documented = ['help', 'whoami', 'pwd', 'ls', 'cd', 'cat', 'find', 'git', 'open', 'theme', 'clear', 'date',
+                          'train', 'render', 'drive', 'diffuse', 'neofetch', 'ping'];
       const pool = frag === '' ? documented.slice().sort() : all;
       const cands = frag === '' ? pool : pool.filter((n) => n.startsWith(frag));
       return { candidates: cands, replaceFrom: lead.length, isCommand: true };
@@ -510,7 +847,18 @@
   function exec(raw) {
     const cmd = raw.trim();
     if (!cmd) return;
+    if (job) interrupt();
     writePrompt(cmd);
+    if (vimMode) {
+      if (/^:(q|q!|qa!|wq|x)$/.test(cmd)) {
+        vimMode = false;
+        writeOut('you escaped vim 🎉 <span class="t-dim">(+10 xp. most people never do)</span>');
+      } else {
+        writeOut(`<span class="t-err">E492: Not an editor command: ${escapeHtml(cmd)}</span> <span class="t-dim">(hint: :q!)</span>`);
+      }
+      scrollDown();
+      return;
+    }
     const parts = cmd.split(/\s+/);
     const name = parts[0].toLowerCase();
     const arg  = parts.slice(1).join(' ');
@@ -562,6 +910,17 @@
     });
 
   input.addEventListener('keydown', (e) => {
+    const ctrlC = e.key === 'c' && (e.ctrlKey || e.metaKey) && !window.getSelection().toString();
+    if (job) {
+      if (ctrlC || e.key === 'Escape' || (job.interactive && e.key === 'q')) { e.preventDefault(); interrupt(); return; }
+      if (job.onKey && job.onKey(e)) { e.preventDefault(); return; }
+      if (job.interactive) { e.preventDefault(); return; } // the game owns the keyboard
+    } else if (vimMode && ctrlC) {
+      e.preventDefault();
+      writeOut('<span class="t-dim">Type  :qa!  and press &lt;Enter&gt; to abandon all changes and exit Vim</span>');
+      scrollDown();
+      return;
+    }
     if (e.key === 'Enter') {
       const v = input.value;
       input.value = '';

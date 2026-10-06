@@ -714,6 +714,27 @@ th { color: var(--ink-0); font-weight: 600; }
 .now-item strong { color: var(--ink-0); }
 .now-item em { color: var(--accent); font-style: italic; }
 
+/* ---- /news list (same items as the CV) -------------------------------- */
+.news-list { list-style: none; padding: 0; margin: 0; }
+.news-item {
+  display: grid; grid-template-columns: 76px 104px 1fr; gap: 14px; align-items: baseline;
+  padding: 13px 0; border-bottom: 1px dashed var(--border); font-size: 0.96rem; color: var(--ink-1);
+}
+.news-item:last-child { border-bottom: none; }
+.news-date { font-family: var(--f-mono); font-size: 0.78rem; color: var(--ink-3); }
+.news-tag {
+  justify-self: start; font-family: var(--f-mono); font-size: 0.66rem; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 999px;
+  border: 1px solid var(--border-strong); color: var(--ink-2);
+}
+.news-tag--accepted { background: var(--accent-soft); border-color: var(--accent); color: var(--ink-0); }
+.news-tag--award { border-color: var(--ink-0); color: var(--ink-0); }
+.news-text strong { color: var(--ink-0); }
+@media (max-width: 600px) {
+  .news-item { grid-template-columns: auto 1fr; }
+  .news-text { grid-column: 1 / -1; }
+}
+
 /* ---- /reading list ---------------------------------------------------- */
 .reading-item {
   padding: 14px 16px;
@@ -987,7 +1008,7 @@ th { color: var(--ink-0); font-weight: 600; }
 }
 .cat-link:hover { color: var(--accent-hover); border-bottom: 1px solid var(--accent-soft); }
 
-.post-title {
+.post-head .post-title {
   font-family: var(--f-display);
   font-size: clamp(2rem, 4.5vw, 2.8rem);
   font-weight: 600;
@@ -1330,7 +1351,7 @@ th { color: var(--ink-0); font-weight: 600; }
   .shell { padding: 0 18px; }
   .post-shell, .archive-shell, .page-shell, .page { padding-top: 80px; padding-bottom: 56px; }
   .post-head { margin-bottom: 26px; }
-  .post-title { font-size: clamp(1.7rem, 7vw, 2.2rem); line-height: 1.12; }
+  .post-head .post-title { font-size: clamp(1.7rem, 7vw, 2.2rem); line-height: 1.12; }
   .post-subtitle { font-size: 1.02rem; }
   .post-content { font-size: 1rem; line-height: 1.72; }
   .post-content h2 { font-size: 1.45rem; margin-top: 2.2rem; padding-top: 1.1rem; }
@@ -1342,7 +1363,7 @@ th { color: var(--ink-0); font-weight: 600; }
   .footer-inner { flex-direction: column; gap: 12px; }
   .shell { padding: 0 14px; }
   .post-shell, .archive-shell, .page-shell, .page { padding-top: 72px; }
-  .post-title { font-size: clamp(1.55rem, 8vw, 2rem); }
+  .post-head .post-title { font-size: clamp(1.55rem, 8vw, 2rem); }
   /* tags + lang toggle wrap comfortably instead of overflowing */
   .chip-row { gap: 5px; }
   .chip--mono { font-size: 0.68rem; padding: 4px 9px; }
@@ -1376,3 +1397,362 @@ th { color: var(--ink-0); font-weight: 600; }
   margin: 0 0 1.25rem;
 }
 .comments .giscus, .comments .giscus-frame { width: 100%; }
+
+
+/* ─── fx: diffusion titles ────────────────────────────────────────────────── */
+.diff-t {
+  font-family: var(--f-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  align-self: center;
+  transition: opacity .8s ease .6s;
+}
+.diff-t.done { opacity: 0; }
+
+/* ─── fx: flow-matching portrait ──────────────────────────────────────────── */
+.flow-canvas {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+}
+.hero-portrait.is-flowing .flow-canvas { opacity: 1; }
+.hero-portrait.is-flowing img { opacity: 0; }
+.flow-tag {
+  position: absolute; left: 50%; top: 100%; transform: translateX(-50%);
+  margin-top: 8px;
+  font: 500 10.5px var(--f-mono);
+  color: var(--accent);
+  white-space: nowrap;
+  opacity: 0; transition: opacity .3s;
+}
+.hero-portrait.is-flowing .flow-tag { opacity: 1; }
+
+/* ─── fx: online HD map HUD ───────────────────────────────────────────────── */
+.bev-hud {
+  position: fixed; right: 20px; bottom: 20px; z-index: 40;
+  width: 190px;
+  padding: 7px 7px 6px;
+  background: color-mix(in srgb, var(--bg-1) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-2);
+  font: 10px/1.4 var(--f-mono);
+  color: var(--ink-2);
+}
+.bev-head, .bev-foot { display: flex; justify-content: space-between; align-items: center; padding: 0 2px; }
+.bev-head { margin-bottom: 5px; color: var(--ink-1); }
+.bev-foot { margin-top: 4px; }
+.bev-sec { color: var(--accent); }
+.bev-canvas { display: block; border-radius: 6px; background: var(--bg-0); }
+.bev-min { background: none; border: 0; color: var(--ink-2); cursor: pointer; font: inherit; padding: 0 2px; }
+.bev-hud.is-min .bev-canvas, .bev-hud.is-min .bev-foot { display: none; }
+.bev-hud.is-min .bev-head { margin-bottom: 0; }
+
+/* ─── fx: easter eggs ─────────────────────────────────────────────────────── */
+.status-text::after { content: "▍"; margin-left: 1px; color: var(--accent); animation: fx-blink 1s steps(2) infinite; }
+@keyframes fx-blink { 50% { opacity: 0; } }
+.party-canvas { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 90; pointer-events: none; }
+.fx-toast {
+  position: fixed; left: 50%; bottom: 28px; z-index: 91;
+  transform: translate(-50%, 16px); opacity: 0;
+  padding: 9px 16px; border-radius: 999px;
+  background: var(--ink-0); color: var(--bg-0);
+  font: 600 13px var(--f-mono);
+  box-shadow: var(--shadow-2);
+  transition: transform .3s cubic-bezier(.2,.8,.2,1), opacity .3s;
+}
+.fx-toast.on { transform: translate(-50%, 0); opacity: 1; }
+.news-tag--accepted { cursor: pointer; }
+
+/* ─── terminal toys ───────────────────────────────────────────────────────── */
+.term-out.t-pre, .term-out .t-pre { white-space: pre-wrap; line-height: 1.3; }
+.term-out.t-render, .term-out.t-drive { white-space: pre; overflow-x: auto; overflow-y: hidden; }
+.term-out.t-render { line-height: 1.05; font-size: 0.78rem; color: var(--accent); }
+.term-out.t-drive { line-height: 1.15; }
+.term-out .t-fog { color: var(--ink-3); opacity: .5; }
+.nf-sw { display: inline-block; width: 22px; height: 12px; margin-right: 3px; border-radius: 2px; vertical-align: middle; }
+
+/* ─── fx: autonomous-driving touches ──────────────────────────────────────── */
+.hero.has-lidar { isolation: isolate; }
+.lidar-canvas {
+  position: absolute; z-index: -1; pointer-events: none;
+  left: -60px; right: -60px; top: -80px; bottom: -40px;
+  width: calc(100% + 120px); height: calc(100% + 120px);
+  -webkit-mask-image: radial-gradient(ellipse at 75% 30%, #000 30%, transparent 78%);
+          mask-image: radial-gradient(ellipse at 75% 30%, #000 30%, transparent 78%);
+  opacity: .9;
+}
+/* section rules become lane markings that roll past */
+.section-rule {
+  height: 2px !important;
+  background: repeating-linear-gradient(90deg, var(--border-strong) 0 22px, transparent 22px 36px) !important;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .section:hover .section-rule { animation: lane-roll .9s linear infinite; }
+}
+@keyframes lane-roll { to { background-position: -36px 0; } }
+[data-odo] { font-variant-numeric: tabular-nums; }
+
+/* ─── 404: rerouting ──────────────────────────────────────────────────────── */
+.reroute { padding: 120px 0 80px; }
+.reroute-code { font-family: var(--f-mono); color: var(--accent); font-size: 0.85rem; letter-spacing: .2em; margin: 0 0 8px; }
+.reroute-title { font-family: var(--f-display); font-size: clamp(2.2rem, 6vw, 3.6rem); margin: 0 0 14px; letter-spacing: -0.03em; color: var(--ink-0); }
+.reroute-sub { color: var(--ink-1); max-width: 36em; }
+.reroute-status { display: block; margin-top: 6px; font-family: var(--f-mono); font-size: .85rem; color: var(--accent-warn); }
+.reroute-dots::after { content: ''; animation: reroute-dots 1.2s steps(4) infinite; }
+@keyframes reroute-dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+.reroute-bev { font-family: var(--f-mono); color: var(--ink-2); background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 16px 18px; margin: 28px 0; line-height: 1.35; overflow-x: auto; }
+.reroute-ego { color: var(--accent); font-weight: 700; }
+.reroute-links { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; font-family: var(--f-mono); font-size: .88rem; }
+.reroute-eta { color: var(--ink-3); }
+
+/* ═══ road theme ═════════════════════════════════════════════════════════════
+   night: wet asphalt, yellow center line, white lane paint, sodium streetlights
+   day:   sun-bleached concrete, sign blue, cone orange                        */
+:root,
+:root[data-theme="dark"] {
+  --bg-0: #17181B;  --bg-1: #1E2024;  --bg-2: #26282D;
+  --surface: rgba(244, 242, 234, 0.04);  --surface-strong: rgba(244, 242, 234, 0.07);
+  --border: rgba(244, 242, 234, 0.10);   --border-strong: rgba(244, 242, 234, 0.22);
+  --ink-0: #F4F2EA;  --ink-1: #C9C6BC;  --ink-2: #8F8C84;  --ink-3: #5F5D58;
+  --accent: #FFC928;  --accent-hover: #FFB800;
+  --accent-soft: rgba(255, 201, 40, 0.13);  --accent-ink: #1A1500;
+  --accent-warn: #FF6A13;
+  --grain-alpha: 0.16;
+  --glow: rgba(255, 164, 60, 0.20);
+  --lane-yellow: rgba(255, 201, 40, 0.38);
+  --lane-white: rgba(244, 242, 234, 0.16);
+}
+:root[data-theme="light"] {
+  --bg-0: #ECEAE4;  --bg-1: #E3E1DA;  --bg-2: #D8D5CD;
+  --surface: rgba(23, 24, 27, 0.04);  --surface-strong: rgba(23, 24, 27, 0.07);
+  --border: rgba(23, 24, 27, 0.12);   --border-strong: rgba(23, 24, 27, 0.26);
+  --ink-0: #17181B;  --ink-1: #3B3C40;  --ink-2: #6A6B6F;  --ink-3: #97979A;
+  --accent: #0B5CD6;  --accent-hover: #0848AB;
+  --accent-soft: rgba(11, 92, 214, 0.10);  --accent-ink: #FFFFFF;
+  --accent-warn: #E4570C;
+  --grain-alpha: 0.07;
+  --glow: rgba(255, 214, 120, 0.35);
+  --lane-yellow: rgba(214, 160, 0, 0.55);
+  --lane-white: rgba(23, 24, 27, 0.14);
+}
+
+/* the page is the road: lane paint scrolls with the content */
+body {
+  background-color: var(--bg-0);
+  background-image:
+    linear-gradient(var(--lane-yellow), var(--lane-yellow)),
+    linear-gradient(var(--lane-yellow), var(--lane-yellow)),
+    repeating-linear-gradient(180deg, var(--lane-white) 0 56px, transparent 56px 112px),
+    linear-gradient(var(--lane-white), var(--lane-white));
+  background-size: 3px 100%, 3px 100%, 4px 100%, 3px 100%;
+  background-position: calc(50% - 604px) 0, calc(50% - 596px) 0, calc(50% + 600px) 0, calc(50% + 660px) 0;
+  background-repeat: no-repeat;
+}
+.bg-shell { background: transparent; }
+.grid-overlay { display: none; }
+.grain { mix-blend-mode: normal; }
+/* sodium streetlights instead of neon glow */
+.bg-shell::before { background: radial-gradient(circle, var(--glow) 0%, transparent 62%); }
+.bg-shell::after  { background: radial-gradient(circle, var(--glow) 0%, transparent 66%); opacity: .45; }
+
+/* ─── road theme: calmer pass ─────────────────────────────────────────────── */
+:root, :root[data-theme="dark"] {
+  --accent: #EBC05A;  --accent-hover: #F2CC6E;  --accent-soft: rgba(235, 192, 90, 0.10);
+  --accent-warn: #E8854A;
+  --glow: rgba(255, 170, 80, 0.08);
+  --grain-alpha: 0.10;
+}
+:root[data-theme="light"] { --glow: rgba(255, 214, 120, 0.18); }
+body { background-image: none; }
+.section-rule { height: 1px !important; background: var(--border) !important; animation: none !important; }
+.lidar-canvas {
+  opacity: .7;
+  -webkit-mask-image: none; mask-image: none;
+}
+
+/* ─── road, part 2: static road furniture ─────────────────────────────────── */
+:root, :root[data-theme="dark"] {
+  --lane-center: rgba(235, 192, 90, 0.42);
+  --lane-paint:  rgba(244, 242, 234, 0.16);
+  --lane-paint-strong: rgba(244, 242, 234, 0.30);
+}
+:root[data-theme="light"] {
+  --lane-center: rgba(200, 150, 0, 0.55);
+  --lane-paint:  rgba(23, 24, 27, 0.16);
+  --lane-paint-strong: rgba(23, 24, 27, 0.26);
+}
+
+/* a two-lane road runs down the left of the content */
+main.page-content, main.page { position: relative; }
+@media (min-width: 1180px) {
+  main.page-content::before, main.page::before {
+    content: ""; position: absolute; top: 40px; bottom: 0; left: calc(50% - 590px); width: 34px;
+    pointer-events: none;
+    background:
+      linear-gradient(var(--lane-center), var(--lane-center)) 0 0 / 2px 100% no-repeat,
+      linear-gradient(var(--lane-center), var(--lane-center)) 4px 0 / 2px 100% no-repeat,
+      repeating-linear-gradient(180deg, var(--lane-paint) 0 20px, transparent 20px 44px) 20px 0 / 2px 100% no-repeat,
+      linear-gradient(var(--lane-paint), var(--lane-paint)) 100% 0 / 2px 100% no-repeat;
+    -webkit-mask-image: linear-gradient(transparent, #000 160px);
+            mask-image: linear-gradient(transparent, #000 160px);
+  }
+  /* the ego car stays put while the road scrolls under it */
+  .rail-car {
+    position: fixed; top: 52vh; left: calc(50% - 590px + 23px); z-index: 5;
+    width: 9px; height: 17px; border-radius: 3px 3px 2px 2px;
+    background: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent), 0 -14px 16px -6px color-mix(in srgb, var(--accent) 35%, transparent);
+    pointer-events: none;
+  }
+  .rail-car::before { /* windshield */
+    content: ""; position: absolute; left: 1.5px; right: 1.5px; top: 3px; height: 4px; border-radius: 1px;
+    background: var(--bg-0); opacity: .8;
+  }
+}
+@media (max-width: 1179px) { .rail-car { display: none; } }
+
+/* section numbers become route shields */
+.section-num {
+  display: inline-grid; place-items: center;
+  min-width: 34px; height: 24px; padding: 0 7px;
+  border: 1.5px solid var(--accent); border-radius: 7px 7px 11px 11px;
+  background: var(--accent-soft);
+  color: var(--accent); font-weight: 700; letter-spacing: 0.02em;
+  align-self: center;
+}
+
+/* cards carry a lane edge; it turns into the center line on hover */
+.pub-card, .project-card, .contact-card, .reading-snapshot-group, .contrib-wrap {
+  box-shadow: inset 2px 0 0 var(--lane-paint-strong), var(--shadow-1);
+  transition: box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+}
+.pub-card:hover, .project-card:hover, .contact-card:hover, .reading-snapshot-group:hover, .contrib-wrap:hover {
+  box-shadow: inset 3px 0 0 var(--accent), var(--shadow-1);
+}
+
+/* a crosswalk before the footer */
+.site-footer { position: relative; border-top: 0; }
+.site-footer::before {
+  content: ""; display: block; height: 16px; margin: 0 auto 24px; max-width: 1040px;
+  background: repeating-linear-gradient(90deg, var(--lane-paint-strong) 0 26px, transparent 26px 48px);
+}
+.site-footer { padding-top: 0; }
+
+/* ═══ palette v3: night road, hi-vis ════════════════════════════════════════
+   one accent only. dark = asphalt + white paint + signal yellow.
+   light = paper + black ink, yellow used as fill/highlighter only.          */
+:root,
+:root[data-theme="dark"] {
+  --bg-0: #0E0F11;  --bg-1: #141518;  --bg-2: #1B1D21;
+  --surface: rgba(255, 255, 255, 0.035);  --surface-strong: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.08);    --border-strong: rgba(255, 255, 255, 0.16);
+  --ink-0: #F5F5F0;  --ink-1: #C4C4BE;  --ink-2: #8A8A85;  --ink-3: #5A5A56;
+  --accent: #FFD60A;  --accent-hover: #FFE14D;
+  --accent-soft: rgba(255, 214, 10, 0.12);  --accent-ink: #0E0F11;
+  --accent-warn: #F5F5F0;
+  --glow: transparent;
+  --grain-alpha: 0.05;
+  --lane-center: rgba(255, 214, 10, 0.55);
+  --lane-paint: rgba(245, 245, 240, 0.14);
+  --lane-paint-strong: rgba(245, 245, 240, 0.26);
+  --code-ink: #FFE066;
+  --prose: #E6E6E1; --prose-strong: #FFFFFF;
+  --heat-0: #1B1D21; --heat-1: #4A4214; --heat-2: #8A7612; --heat-3: #CBA90D; --heat-4: #FFD60A;
+}
+:root[data-theme="light"] {
+  --bg-0: #F6F5F1;  --bg-1: #EFEEE9;  --bg-2: #E6E5DF;
+  --surface: #FFFFFF;  --surface-strong: #FFFFFF;
+  --border: rgba(14, 15, 17, 0.10);  --border-strong: rgba(14, 15, 17, 0.22);
+  --ink-0: #0E0F11;  --ink-1: #34353A;  --ink-2: #6B6C70;  --ink-3: #9C9CA0;
+  --accent: #0E0F11;  --accent-hover: #000000;
+  --accent-soft: rgba(255, 214, 10, 0.55);  --accent-ink: #FFD60A;
+  --accent-warn: #0E0F11;
+  --glow: transparent;
+  --grain-alpha: 0.03;
+  --lane-center: rgba(230, 180, 0, 0.85);
+  --lane-paint: rgba(14, 15, 17, 0.14);
+  --lane-paint-strong: rgba(14, 15, 17, 0.24);
+  --code-ink: #0E0F11;
+  --prose: #1E1F23; --prose-strong: #000000;
+  --heat-0: #E6E5DF; --heat-1: #F7E9A6; --heat-2: #F5D84F; --heat-3: #E9BD00; --heat-4: #0E0F11;
+}
+
+/* no more colored glows; the road does the talking */
+.bg-shell::before, .bg-shell::after { display: none; }
+
+/* heatmap in the same ramp */
+:root .contrib-cell.contrib-l0, :root .contrib-swatch.contrib-l0 { fill: var(--heat-0) !important; background: var(--heat-0) !important; }
+:root .contrib-cell.contrib-l1, :root .contrib-swatch.contrib-l1 { fill: var(--heat-1) !important; background: var(--heat-1) !important; }
+:root .contrib-cell.contrib-l2, :root .contrib-swatch.contrib-l2 { fill: var(--heat-2) !important; background: var(--heat-2) !important; }
+:root .contrib-cell.contrib-l3, :root .contrib-swatch.contrib-l3 { fill: var(--heat-3) !important; background: var(--heat-3) !important; }
+:root .contrib-cell.contrib-l4, :root .contrib-swatch.contrib-l4 { fill: var(--heat-4) !important; background: var(--heat-4) !important; }
+
+/* brand-colored icons → monochrome */
+.skill-icon, .skill-icon.colored, .skill-icon--nvidia, :root[data-theme="light"] .skill-icon--nvidia { color: var(--ink-1) !important; }
+.skill-item:hover .skill-icon { color: var(--accent) !important; }
+
+/* status + small dots follow the accent */
+.status-dot, .brand-dot, .footer-left .dot { background: var(--accent) !important; box-shadow: none; }
+
+/* light mode: yellow as highlighter under black text */
+:root[data-theme="light"] .btn-primary { background: var(--ink-0); color: var(--accent-ink); border-color: var(--ink-0); }
+:root[data-theme="light"] .section-num,
+:root[data-theme="light"] .news-tag--accepted,
+:root[data-theme="light"] .status-pill--accept { color: var(--ink-0); background: var(--accent-soft); border-color: var(--ink-0); }
+
+/* ═══ palette v4: "sign white" (default) ════════════════════════════════════
+   white road-sign paper, black ink, signal yellow as solid fill only.       */
+:root[data-theme="light"] {
+  --bg-0: #FAFAF7;  --bg-1: #F3F3EF;  --bg-2: #EAEAE5;
+  --surface: #FFFFFF;  --surface-strong: #FFFFFF;
+  --border: rgba(14, 15, 17, 0.10);  --border-strong: rgba(14, 15, 17, 0.20);
+  --ink-0: #0E0F11;  --ink-1: #44464B;  --ink-2: #6E7075;  --ink-3: #9A9CA0;
+  --accent: #0E0F11;  --accent-hover: #000000;
+  --accent-soft: #FFD60A;  --accent-ink: #FFD60A;
+  --accent-warn: #0E0F11;
+  --grain-alpha: 0;
+  --lane-center: rgba(240, 180, 0, 0.95);
+  --lane-paint: rgba(14, 15, 17, 0.18);
+  --lane-paint-strong: rgba(14, 15, 17, 0.22);
+  --shadow-1: 0 1px 2px rgba(14, 15, 17, 0.04);
+  --shadow-2: 0 18px 40px -24px rgba(14, 15, 17, 0.25);
+  --heat-0: #ECEBE6; --heat-1: #F8E7A0; --heat-2: #F2CF3A; --heat-3: #E0B400; --heat-4: #0E0F11;
+}
+:root[data-theme="light"] body { background-color: var(--bg-0); }
+
+/* solid yellow badges with black ink */
+:root[data-theme="light"] .section-num { background: #FFD60A; border-color: #0E0F11; color: #0E0F11; }
+:root[data-theme="light"] .news-tag--accepted,
+:root[data-theme="light"] .status-pill--accept { background: #FFD60A; color: #0E0F11; border-color: #FFD60A; }
+:root[data-theme="light"] .news-tag { background: #FFFFFF; }
+
+/* highlighter on the key phrases */
+:root[data-theme="light"] .hero-about strong,
+:root[data-theme="light"] .news-text strong {
+  background: linear-gradient(transparent 60%, rgba(255, 214, 10, 0.75) 60%);
+  padding: 0 2px;
+}
+:root[data-theme="light"] ::selection { background: #FFD60A; color: #0E0F11; }
+
+/* the terminal stays a dark screen, like a real one */
+:root[data-theme="light"] .terminal {
+  --bg-1: #111214; --bg-2: #1A1B1E; --border: rgba(255,255,255,.08); --border-strong: rgba(255,255,255,.16);
+  --ink-0: #F5F5F0; --ink-1: #C4C4BE; --ink-2: #8A8A85; --ink-3: #5A5A56;
+  --accent: #FFD60A; --accent-hover: #FFE14D; --accent-soft: rgba(255,214,10,.14); --accent-ink: #111214;
+  background: #111214; border-color: #111214; color: var(--ink-1);
+}
+
+/* ─── news tags: high contrast in both themes ─────────────────────────────── */
+/* (overrides the earlier palette rules, which left ACCEPTED as a thin yellow outline on white) */
+:root[data-theme] .news-tag {
+  background: transparent; color: var(--ink-0);
+  border: 1.5px solid var(--ink-0); font-weight: 700;
+}
+:root[data-theme] .news-tag.news-tag--accepted { background: #FFD60A; color: #0E0F11; border-color: var(--ink-0); }
+:root[data-theme] .news-tag.news-tag--award { background: var(--ink-0); color: var(--bg-0); border-color: var(--ink-0); }
+:root[data-theme] .news-tag.news-tag--milestone,
+:root[data-theme] .news-tag.news-tag--submission { background: transparent; color: var(--ink-0); }

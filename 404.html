@@ -1,0 +1,42 @@
+---
+layout: default
+title: Route not found
+permalink: /404.html
+sitemap: false
+---
+<div class="shell reroute">
+  <p class="reroute-code">404</p>
+  <h1 class="reroute-title">route not found.</h1>
+  <p class="reroute-sub">
+    the planner searched every lane graph it has, and <code id="reroute-path">this page</code> isn't on any of them.
+    <span class="reroute-status">recalculating route<span class="reroute-dots"></span></span>
+  </p>
+  <pre class="reroute-bev" aria-hidden="true">
+   |   :   :   |
+   |   :   :   |        ?
+   |   :   :   |       /
+   |   :   :   |  ----’   &lt;- you tried to go here
+   |   :   :   |
+   |   : <span class="reroute-ego">A</span> :   |
+   |   :   :   |</pre>
+  <p class="reroute-links">
+    <a href="{{ '/' | relative_url }}">↩ back to home</a>
+    <a href="{{ '/posts/' | relative_url }}">browse posts</a>
+    <span class="reroute-eta">rerouting home in <b id="reroute-eta">8</b>s</span>
+  </p>
+</div>
+<script>
+  (function () {
+    var path = document.getElementById('reroute-path');
+    if (path) path.textContent = location.pathname;
+    var n = 8, el = document.getElementById('reroute-eta');
+    var t = setInterval(function () {
+      n -= 1; if (el) el.textContent = n;
+      if (n <= 0) { clearInterval(t); location.href = '{{ "/" | relative_url }}'; }
+    }, 1000);
+    // any interaction cancels the auto-reroute
+    ['keydown', 'pointerdown', 'wheel'].forEach(function (ev) {
+      window.addEventListener(ev, function () { clearInterval(t); var e = document.querySelector('.reroute-eta'); if (e) e.textContent = 'auto-reroute cancelled'; }, { once: true });
+    });
+  })();
+</script>

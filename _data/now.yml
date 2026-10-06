@@ -1,9 +1,6 @@
 # What I'm working on, currently. Edit this when things change.
 items:
-  - "ECCV 2026 submission on Gaussian Splatting for autonomous driving (under review)"
-  - "ReSMap — Online HD Map Construction with satellite priors, accepted at NeurIPS 2026 🎉 (co-first author)"
-  - "Lane Topology Reasoning, targeting AAAI 2027 (in progress)"
-  - "Gaussian Splatting for BEV Perception, targeting ICLR 2027 (in progress)"
-  - "Driving World Model, targeting ICLR 2027 (in progress)"
-  - "Gaussian Splatting for Manipulation Policy Learning, targeting CVPR 2027 (in progress)"
-  - "Exploring 3D scene representations for the next generation of perception · planning"
+  - "3D Gaussian Splatting for Autonomous Driving, submitted to ICLR 2027 (under review)"
+  - "Latent World Model for Autonomous Driving, targeting CVPR 2027 (in progress)"
+  - "Dataset for Lane Topology, targeting CVPR 2027 (in progress)"
+  - "BEV Perception leveraging Gaussian Splatting, targeting CVPR 2027 (in progress)"

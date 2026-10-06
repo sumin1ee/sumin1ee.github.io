@@ -12,7 +12,7 @@ groups:
         year: 2020
         award: "Oral · Best Paper Honorable Mention"
         url: "https://arxiv.org/abs/2003.08934"
-        note: "The paper that started everything — volume rendering meets MLPs."
+        note: "The paper that started everything: volume rendering meets MLPs."
 
       - title: "NeRF in the Wild: Neural Radiance Fields for Unconstrained Photo Collections"
         authors: "Martin-Brualla et al."
@@ -52,7 +52,7 @@ groups:
         year: 2022
         award: "Oral"
         url: "https://arxiv.org/abs/2112.05131"
-        note: "Sparse voxel grids — the first hint that explicit primitives could beat MLPs on speed."
+        note: "Sparse voxel grids, the first hint that explicit primitives could beat MLPs on speed."
 
       - title: "Instant Neural Graphics Primitives with a Multiresolution Hash Encoding"
         authors: "Müller et al."
@@ -60,7 +60,7 @@ groups:
         year: 2022
         award: "Best Paper"
         url: "https://arxiv.org/abs/2201.05989"
-        note: "Instant-NGP — multi-resolution hash grids; training a NeRF in seconds."
+        note: "Instant-NGP: multi-resolution hash grids; training a NeRF in seconds."
 
       - title: "Mip-NeRF 360: Unbounded Anti-Aliased Neural Radiance Fields"
         authors: "Barron et al."
@@ -95,7 +95,7 @@ groups:
 
   - id: gs
     label: Gaussian Splatting · Autonomous Driving
-    blurb: "Explicit radiance primitives applied to street-scale reconstruction — dynamic, unbounded, multi-sensor."
+    blurb: "Explicit radiance primitives applied to street-scale reconstruction: dynamic, unbounded, multi-sensor."
     items:
       - title: "Block-NeRF: Scalable Large Scene Neural View Synthesis"
         authors: "Tancik et al."
@@ -109,7 +109,7 @@ groups:
         year: 2023
         award: "Best Paper"
         url: "https://repo-sam.inria.fr/fungraph/3d-gaussian-splatting/"
-        note: "The paper that opened the door — explicit primitives that train and render in minutes."
+        note: "The paper that opened the door: explicit primitives that train and render in minutes."
 
       - title: "StreetSurf: Extending Multi-View Implicit Surface Reconstruction to Street Views"
         authors: "Guo et al."
@@ -198,7 +198,7 @@ groups:
         venue: "CVPR"
         year: 2025
         url: "https://arxiv.org/abs/2411.16816"
-        note: "Direct predecessor to our line of work — camera + lidar Gaussian splatting in driving."
+        note: "Direct predecessor to our line of work, camera + lidar Gaussian splatting in driving."
 
       - title: "GS-LiDAR: Generating Realistic LiDAR Point Clouds with Panoramic Gaussian Splatting"
         authors: "Jiang et al."
@@ -247,7 +247,7 @@ groups:
         year: 2023
         award: "Spotlight"
         url: "https://arxiv.org/abs/2208.14437"
-        note: "Vectorized output via permutation-invariant point sets — the dominant paradigm since."
+        note: "Vectorized output via permutation-invariant point sets, the dominant paradigm since."
 
       - title: "VectorMapNet: End-to-End Vectorized HD Map Learning"
         authors: "Liu et al."
@@ -343,7 +343,7 @@ groups:
 
   - id: topology
     label: Lane Topology Reasoning
-    blurb: "Beyond detecting lanes — reasoning about how they connect to each other and to traffic elements. The graph that makes a map drivable."
+    blurb: "Beyond detecting lanes: reasoning about how they connect to each other and to traffic elements. The graph that makes a map drivable."
     items:
       - title: "TopoNet: Graph-based Topology Reasoning for Driving Scenes"
         authors: "Li, Chen, Wang, Y. Li, Yang, Geng, Jiang, Y. Wang, Xu, Xu, Yan, Luo, H. Li"
@@ -358,7 +358,7 @@ groups:
         year: 2023
         award: "Datasets & Benchmarks"
         url: "https://arxiv.org/abs/2304.10440"
-        note: "The benchmark TopoNet introduced — centerline + traffic element detection plus the OLS topology metric."
+        note: "The benchmark TopoNet introduced: centerline + traffic element detection plus the OLS topology metric."
 
       - title: "TopoMLP: A Simple yet Strong Pipeline for Driving Topology Reasoning"
         authors: "Wu et al."
@@ -372,7 +372,7 @@ groups:
         venue: "ICLR"
         year: 2024
         url: "https://arxiv.org/abs/2312.16108"
-        note: "Lane segment as the unit of map learning — geometry and topology in one representation."
+        note: "Lane segment as the unit of map learning, with geometry and topology in one representation."
 
   - id: e2ead
     label: End-to-End Autonomous Driving
@@ -384,7 +384,7 @@ groups:
         year: 2023
         award: "Best Paper"
         url: "https://arxiv.org/abs/2212.10156"
-        note: "The lodestar — perception, prediction, planning fused in one query-based stack."
+        note: "The lodestar: perception, prediction, planning fused in one query-based stack."
 
       - title: "VAD: Vectorized Scene Representation for Efficient Autonomous Driving"
         authors: "Jiang et al."
@@ -452,7 +452,7 @@ groups:
         authors: "Li et al."
         venue: "CVPR Workshop"
         year: 2024
-        award: "E2E AD Challenge — 1st place"
+        award: "E2E AD Challenge · 1st place"
         url: "https://arxiv.org/abs/2406.06978"
 
       - title: "SparseDrive: End-to-End Autonomous Driving via Sparse Scene Representation"
