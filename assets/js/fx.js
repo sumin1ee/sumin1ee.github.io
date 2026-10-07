@@ -1,6 +1,6 @@
 /*
- * Playful ML/CV and driving touches: diffusion section titles, a BEV online-map
- * HUD, easter eggs and an odometer (plus a flow-matching portrait, a LiDAR sweep
+ * Playful ML/CV and driving touches: diffusion section titles, easter eggs
+ * and an odometer (plus a flow-matching portrait, a LiDAR sweep
  * and a status ticker that only switch on where their elements exist).
  * Motion-heavy pieces bail out on reduced-motion.
  */
@@ -142,154 +142,6 @@
     window.addEventListener('resize', () => { pts = null; });
     const first = () => setTimeout(play, 500);
     if (img.complete) first(); else img.addEventListener('load', first, { once: true });
-  }
-
-  // ─── 5. online HD map (BEV minimap) ─────────────────────────────────────
-  // A fixed bird's-eye-view HUD. Scrolling drives the ego car forward; lane
-  // dividers / boundaries are "predicted" as vectorized polylines inside the
-  // perception range and accumulate behind the car. Sections are crosswalks.
-  function onlineMap() {
-    if (!window.matchMedia('(min-width: 1100px)').matches) return;
-    if (document.querySelector('.post-content')) return;   // not on posts: it would sit on the table of contents
-
-    const hud = document.createElement('aside');
-    hud.className = 'bev-hud';
-    hud.setAttribute('aria-hidden', 'true');
-    hud.innerHTML =
-      '<div class="bev-head"><span>online map · BEV</span><button type="button" class="bev-min" tabindex="-1">–</button></div>' +
-      '<canvas class="bev-canvas"></canvas>' +
-      '<div class="bev-foot"><span class="bev-sec"></span><span class="bev-n"></span></div>';
-    document.body.appendChild(hud);
-    const canvas = hud.querySelector('canvas');
-    const ctx = canvas.getContext('2d');
-    const secEl = hud.querySelector('.bev-sec');
-    const nEl = hud.querySelector('.bev-n');
-    hud.querySelector('.bev-min').addEventListener('click', () => hud.classList.toggle('is-min'));
-
-    const W = 176, H = 212, dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = W * dpr; canvas.height = H * dpr;
-    canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
-
-    const PX = 2.0;          // bev px per "meter"
-    const K = 0.09;          // meters travelled per scrolled px
-    const EGO_Y = H * 0.72;  // ego position on the canvas
-    const RANGE = 62;        // perception range ahead (m)
-    const LANE = 8;          // lane width (m, exaggerated for legibility)
-
-    // road centerline as a smooth function of distance s
-    const cx = (s) => 14 * Math.sin(s / 60) + 6 * Math.sin(s / 23 + 1.3);
-    const toScreen = (s, off, egoS) => [W / 2 + (cx(s) - cx(egoS) + off) * PX, EGO_Y - (s - egoS) * PX];
-
-    // sections → crosswalks at their document position
-    let crossings = [];
-    const layout = () => {
-      const els = [...document.querySelectorAll('.section, .hero')].filter((el) => el.offsetParent !== null);
-      crossings = els.map((el) => {
-        const t = el.querySelector('.section-title');
-        return {
-          s: (el.getBoundingClientRect().top + window.scrollY) * K,
-          name: t ? (t.getAttribute('aria-label') || t.textContent).trim()
-                  : el.querySelector('.terminal') ? '~/terminal' : 'about',
-        };
-      }).sort((a, b) => a.s - b.s);
-    };
-    // a few other agents parked along the road (meters, lane offset)
-    const agents = [[60, LANE], [140, -LANE], [230, LANE], [320, LANE * 2], [410, -LANE], [520, LANE]];
-    let seen = 0; // furthest s the map has been built to
-
-    function draw() {
-      const egoS = (window.scrollY + window.innerHeight * 0.35) * K; // ego sits 35% down the viewport
-      seen = Math.max(seen, egoS + RANGE);
-      const accent = css('--accent'), ink = css('--ink-2'), warn = css('--accent-warn');
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.clearRect(0, 0, W, H);
-
-      // grid
-      ctx.strokeStyle = css('--border'); ctx.lineWidth = 1;
-      const g = 20, shift = (egoS * PX) % g;
-      ctx.beginPath();
-      for (let y = shift; y < H; y += g) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
-      for (let x = (W / 2) % g; x < W; x += g) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
-      ctx.stroke();
-
-      const s0 = egoS - (H - EGO_Y) / PX - 5, s1 = Math.min(seen, egoS + EGO_Y / PX);
-      let instances = 0;
-      // polyline with vertex dots; points near the range edge jitter like fresh predictions
-      const poly = (off, color, dash, width) => {
-        ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = width;
-        ctx.setLineDash(dash);
-        ctx.beginPath();
-        const verts = [];
-        for (let s = s0; s <= s1; s += 3) {
-          const fresh = Math.max(0, (s - (egoS + RANGE * 0.6)) / (RANGE * 0.4));
-          const [x, y] = toScreen(s, off + (Math.random() - 0.5) * fresh * 2.4, egoS);
-          verts.push([x, y, fresh]);
-          s === s0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-        ctx.setLineDash([]);
-        verts.forEach(([x, y, f], i) => { if (i % 2 === 0) { ctx.globalAlpha = 0.9 - f * 0.5; ctx.fillRect(x - 1.2, y - 1.2, 2.4, 2.4); } });
-        ctx.globalAlpha = 1;
-        instances++;
-      };
-      poly(-LANE * 1.5, ink, [], 1.4);          // road boundaries
-      poly(LANE * 2.5, ink, [], 1.4);
-      poly(-LANE * 0.5, accent, [5, 4], 1.2);   // lane dividers
-      poly(LANE * 0.5, accent, [5, 4], 1.2);
-      poly(LANE * 1.5, accent, [5, 4], 1.2);
-
-      // crosswalks + section labels
-      let current = crossings[0];
-      ctx.font = '9px "JetBrains Mono", monospace';
-      crossings.forEach((c) => {
-        if (c.s <= egoS) current = c;
-        if (c.s < s0 || c.s > s1) return;
-        instances++;
-        const [xl, y] = toScreen(c.s, -LANE * 1.5, egoS);
-        const [xr] = toScreen(c.s, LANE * 2.5, egoS);
-        ctx.fillStyle = warn; ctx.globalAlpha = 0.55;
-        for (let x = xl + 2; x < xr - 2; x += 5) ctx.fillRect(x, y - 4, 2.5, 8);
-        ctx.globalAlpha = 1;
-        const tag = c.name.toLowerCase();
-        ctx.fillText(tag.length > 12 ? tag.slice(0, 11) + '…' : tag, Math.min(xr + 3, W - 60), y + 3);
-      });
-
-      // other agents: little boxes with a heading tick
-      agents.forEach(([s, off]) => {
-        if (s < s0 || s > s1) return;
-        instances++;
-        const [x, y] = toScreen(s, off, egoS);
-        ctx.strokeStyle = ink; ctx.lineWidth = 1.2;
-        ctx.strokeRect(x - 3.5, y - 7, 7, 14);
-        ctx.beginPath(); ctx.moveTo(x, y - 7); ctx.lineTo(x, y - 11); ctx.stroke();
-      });
-
-      // perception range fan
-      ctx.fillStyle = accent; ctx.globalAlpha = 0.07;
-      ctx.beginPath(); ctx.moveTo(W / 2, EGO_Y);
-      ctx.arc(W / 2, EGO_Y, RANGE * PX, -Math.PI / 2 - 0.55, -Math.PI / 2 + 0.55);
-      ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
-
-      // ego
-      ctx.fillStyle = accent;
-      ctx.fillRect(W / 2 - 4, EGO_Y - 8, 8, 16);
-      ctx.fillStyle = css('--bg-0');
-      ctx.fillRect(W / 2 - 2.5, EGO_Y - 5, 5, 3);
-
-      secEl.textContent = current ? '→ ' + current.name.toLowerCase() : '';
-      nEl.textContent = window.__odo ? `${instances} inst · ${window.__odo.replace(/^odometer /, '')}` : `${instances} inst`;
-    }
-
-    let queued = false;
-    const tick = () => { if (!queued) { queued = true; requestAnimationFrame(() => { queued = false; draw(); }); } };
-    window.addEventListener('scroll', tick, { passive: true });
-    window.addEventListener('resize', () => { layout(); tick(); });
-    // a theme switch re-tints the map
-    new MutationObserver(() => { layout(); tick(); })
-      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
-    // give titles a moment to settle (diffusion swaps their text) before labeling crossings
-    layout(); draw();
-    setTimeout(() => { layout(); draw(); }, 1500);
   }
 
   // ─── 6. status ticker ───────────────────────────────────────────────────
@@ -498,7 +350,7 @@
         ctx.fillRect(ox + p.x - 1, oy + p.y * SQ - 1, 2, 2);
       }
       // boxes on freshly scanned objects
-      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.font = '10px "Comic Mono", monospace';
       for (const c of cars) {
         const since = (theta - c.a + Math.PI * 4) % (Math.PI * 2);
         const a = Math.exp(-since * 0.7);
@@ -553,7 +405,6 @@
   lidarHero();
   diffusionTitles();
   flowPortrait();
-  onlineMap();
   statusTicker();
   splatParty();
   odometer();

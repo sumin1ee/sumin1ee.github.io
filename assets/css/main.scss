@@ -79,9 +79,9 @@
   --r-sm: 6px;
   --r-md: 12px;
   --r-lg: 18px;
-  --f-sans:    'Inter', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
-  --f-display: 'Space Grotesk', 'Inter', sans-serif;
-  --f-mono:    'JetBrains Mono', 'SF Mono', Menlo, monospace;
+  --f-sans:    'Comic Neue', 'Gowun Dodum', 'Comic Sans MS', system-ui, sans-serif;
+  --f-display: 'Comic Neue', 'Gowun Dodum', 'Comic Sans MS', sans-serif;
+  --f-mono:    'Comic Mono', 'Gowun Dodum', ui-monospace, monospace;
 }
 
 /* ---- Reset & base ----------------------------------------------------- */
@@ -1428,27 +1428,6 @@ th { color: var(--ink-0); font-weight: 600; }
 }
 .hero-portrait.is-flowing .flow-tag { opacity: 1; }
 
-/* ─── fx: online HD map HUD ───────────────────────────────────────────────── */
-.bev-hud {
-  position: fixed; right: 20px; bottom: 20px; z-index: 40;
-  width: 190px;
-  padding: 7px 7px 6px;
-  background: color-mix(in srgb, var(--bg-1) 88%, transparent);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--border-strong);
-  border-radius: var(--r-md);
-  box-shadow: var(--shadow-2);
-  font: 10px/1.4 var(--f-mono);
-  color: var(--ink-2);
-}
-.bev-head, .bev-foot { display: flex; justify-content: space-between; align-items: center; padding: 0 2px; }
-.bev-head { margin-bottom: 5px; color: var(--ink-1); }
-.bev-foot { margin-top: 4px; }
-.bev-sec { color: var(--accent); }
-.bev-canvas { display: block; border-radius: 6px; background: var(--bg-0); }
-.bev-min { background: none; border: 0; color: var(--ink-2); cursor: pointer; font: inherit; padding: 0 2px; }
-.bev-hud.is-min .bev-canvas, .bev-hud.is-min .bev-foot { display: none; }
-.bev-hud.is-min .bev-head { margin-bottom: 0; }
 
 /* ─── fx: easter eggs ─────────────────────────────────────────────────────── */
 .status-text::after { content: "▍"; margin-left: 1px; color: var(--accent); animation: fx-blink 1s steps(2) infinite; }
@@ -1756,3 +1735,101 @@ main.page-content, main.page { position: relative; }
 :root[data-theme] .news-tag.news-tag--award { background: var(--ink-0); color: var(--bg-0); border-color: var(--ink-0); }
 :root[data-theme] .news-tag.news-tag--milestone,
 :root[data-theme] .news-tag.news-tag--submission { background: transparent; color: var(--ink-0); }
+
+/* ─── comic type: Comic Neue (Latin) + Gowun Dodum (Hangul) + Comic Mono ───── */
+/* the old display face liked tight tracking; Comic Neue reads better at its natural spacing */
+h1, h2, h3, h4, .section-title, .post-title, .hero-name, .archive-title, .page-title,
+.hero-title, .pub-title, .project-title, .timeline-role, .reroute-title {
+  letter-spacing: 0 !important;
+}
+
+/* ─── tail car (bottom right): left blinker = back, right blinker = forward ── */
+.tailcar {
+  --car: #0E0F11; --glass: #3a4350; --tyre: #2a2c30; --bar: #3b0f0f; --tail: #c4271c;
+  --lamp: #5e430c; --lamp-on: #FFB000;
+  position: fixed; right: 18px; bottom: 14px; z-index: 50; width: 140px; height: 92px;
+  view-transition-name: tailcar;
+}
+:root[data-theme="dark"] .tailcar { --car: #F5F5F0; --glass: #262b33; --tyre: #4a4d53; --bar: #4a1414; --lamp: #7a5a14; }
+:root[data-theme="dark"] .tc-shadow { fill: rgba(245, 245, 240, .1); }
+.tailcar-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.tc-shadow { fill: rgba(14, 15, 17, .14); }
+.tc-tyre { fill: var(--tyre); }
+.tc-paint { fill: var(--car); }
+.tc-glass { fill: var(--glass); }
+.tc-bar { fill: var(--bar); }
+.tc-tail { fill: var(--tail); }
+.tc-lamp { fill: var(--lamp); transition: fill .12s; }
+.tc-plate { fill: #F5F5F0; stroke: rgba(14, 15, 17, .55); stroke-width: .8; }
+.tc-plate-txt { font: 700 7px var(--f-mono); fill: #0E0F11; letter-spacing: .06em; }
+.tc-bumper { fill: rgba(255, 255, 255, .14); }
+.tc-arrow { fill: rgba(255, 255, 255, .8); pointer-events: none; }
+.blinker {
+  position: absolute; top: 0; bottom: 0; width: 46%; padding: 0; border: 0; border-radius: 12px;
+  background: none; cursor: pointer;
+}
+.blinker--left { left: 0; }
+.blinker--right { right: 0; }
+.blinker:focus-visible { outline: 2px solid var(--ink-0); outline-offset: 2px; }
+/* hovering previews the signal you're about to use */
+.tailcar:has(.blinker--left:hover) .tc-lamp--left,
+.tailcar:has(.blinker--right:hover) .tc-lamp--right,
+.tailcar:has(.blinker--left:focus-visible) .tc-lamp--left,
+.tailcar:has(.blinker--right:focus-visible) .tc-lamp--right { fill: var(--lamp-on); }
+.blinker::after {
+  content: attr(data-tip); position: absolute; bottom: calc(100% + 6px); white-space: nowrap;
+  font: 700 10.5px var(--f-mono); padding: 4px 9px; border-radius: 999px;
+  background: var(--ink-0); color: var(--bg-0);
+  opacity: 0; transform: translateY(4px); transition: opacity .15s, transform .15s; pointer-events: none;
+}
+.blinker--left::after { left: 0; }
+.blinker--right::after { right: 0; }
+.blinker:hover::after, .blinker:focus-visible::after { opacity: 1; transform: none; }
+.tailcar.blink-left .tc-lamp--left,
+.tailcar.blink-right .tc-lamp--right { animation: tc-blink .36s steps(1, end) var(--blinks, 3); }
+@keyframes tc-blink {
+  0% { fill: var(--lamp-on); filter: drop-shadow(0 0 4px var(--lamp-on)); }
+  50% { fill: var(--lamp); filter: none; }
+}
+.tailcar.no-left .tc-lamp--left, .tailcar.no-right .tc-lamp--right { opacity: .45; }
+.tailcar-hint {
+  position: absolute; right: 0; bottom: calc(100% + 32px); white-space: nowrap;
+  font: 700 10.5px var(--f-mono); padding: 4px 9px; border-radius: 999px;
+  background: var(--accent-soft); color: var(--ink-0); border: 1px solid var(--ink-0);
+  opacity: 0; transition: opacity .2s; pointer-events: none;
+}
+.tailcar.hinting .tailcar-hint { opacity: 1; }
+@media (max-width: 600px) { .tailcar { width: 104px; height: 68px; right: 10px; bottom: 10px; } }
+@media print { .tailcar { display: none; } }
+
+/* ─── lane change between pages (cross-document view transitions) ─────────── */
+@view-transition { navigation: auto; }
+.topnav { view-transition-name: topnav; }
+.rail-car { view-transition-name: egocar; }
+:root:active-view-transition-type(lane-right)::view-transition-old(root) { animation: lane-out-left .5s cubic-bezier(.5, 0, .2, 1) both; }
+:root:active-view-transition-type(lane-right)::view-transition-new(root) { animation: lane-in-right .5s cubic-bezier(.5, 0, .2, 1) both; }
+:root:active-view-transition-type(lane-left)::view-transition-old(root) { animation: lane-out-right .5s cubic-bezier(.5, 0, .2, 1) both; }
+:root:active-view-transition-type(lane-left)::view-transition-new(root) { animation: lane-in-left .5s cubic-bezier(.5, 0, .2, 1) both; }
+@keyframes lane-out-left { to { transform: translateX(-12vw); opacity: 0; } }
+@keyframes lane-in-right { from { transform: translateX(12vw); opacity: 0; } }
+@keyframes lane-out-right { to { transform: translateX(12vw); opacity: 0; } }
+@keyframes lane-in-left { from { transform: translateX(-12vw); opacity: 0; } }
+
+/* ─── night drive: dusk falls from below and the headlights flick on ───────── */
+:root.vt-night::view-transition-old(root), :root.vt-day::view-transition-old(root) { animation: none; }
+:root.vt-night::view-transition-new(root) { animation: tc-dusk .75s cubic-bezier(.4, 0, .2, 1); }
+:root.vt-day::view-transition-new(root) { animation: tc-dawn .75s cubic-bezier(.4, 0, .2, 1); }
+@keyframes tc-dusk { from { clip-path: circle(0% at 50% 110%); } to { clip-path: circle(150% at 50% 110%); } }
+@keyframes tc-dawn { from { clip-path: circle(0% at 50% -10%); } to { clip-path: circle(150% at 50% -10%); } }
+.headlights {
+  position: fixed; inset: 0; z-index: 85; pointer-events: none; mix-blend-mode: screen;
+  background:
+    radial-gradient(34% 62% at 36% 104%, rgba(255, 243, 210, .55), rgba(255, 243, 210, 0) 72%),
+    radial-gradient(34% 62% at 64% 104%, rgba(255, 243, 210, .55), rgba(255, 243, 210, 0) 72%);
+  animation: tc-beams 1.6s ease-out forwards;
+}
+@keyframes tc-beams { 0% { opacity: 0; } 6% { opacity: 1; } 12% { opacity: .1; } 19% { opacity: 1; } 55% { opacity: .85; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  @view-transition { navigation: none; }
+  .headlights { display: none; }
+}

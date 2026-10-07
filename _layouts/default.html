@@ -10,7 +10,8 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,400;1,700&family=Gowun+Dodum&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/comic-mono@0.0.1/index.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <link rel="stylesheet" href="{{ '/assets/css/main.css' | relative_url }}">
@@ -27,6 +28,16 @@
         document.documentElement.setAttribute('data-theme', 'light');
       }
     })();
+  </script>
+  <script>
+    // lane change between pages: back = the left lane, everything else = the right lane
+    addEventListener('pagereveal', function (e) {
+      if (!e.viewTransition || !e.viewTransition.types) return;
+      var dir = 'right', a = window.navigation && navigation.activation;
+      if (a && a.navigationType === 'traverse' && a.from && a.entry && a.entry.index < a.from.index) dir = 'left';
+      try { var s = sessionStorage.getItem('tail:blink'); if (s === 'left' || s === 'right') dir = s; } catch (err) {}
+      e.viewTransition.types.add('lane-' + dir);
+    });
   </script>
 </head>
 
@@ -84,12 +95,16 @@
       btn.addEventListener('click', function () {
         var current = document.documentElement.getAttribute('data-theme') || 'dark';
         var next = current === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', next);
-        try { localStorage.setItem('theme-v2', next); } catch (e) {}
+        var apply = function () {
+          document.documentElement.setAttribute('data-theme', next);
+          try { localStorage.setItem('theme-v2', next); } catch (e) {}
+        };
+        if (window.fxThemeSwitch) window.fxThemeSwitch(next, apply); else apply();
       });
     })();
   </script>
   <script src="{{ '/assets/js/fx.js' | relative_url }}" defer></script>
+  <script src="{{ '/assets/js/tailcar.js' | relative_url }}" defer></script>
   {% if page.layout == 'post' %}
     <script src="{{ '/assets/js/post.js' | relative_url }}" defer></script>
   {% endif %}

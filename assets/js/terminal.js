@@ -369,8 +369,11 @@
                `Try <span class="t-cmd">theme dark</span>, <span class="t-cmd">theme light</span>, or just <span class="t-cmd">theme</span> to toggle.`;
       }
 
-      root.setAttribute('data-theme', next);
-      try { localStorage.setItem('theme-v2', next); } catch (e) {}
+      const apply = () => {
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('theme-v2', next); } catch (e) {}
+      };
+      if (window.fxThemeSwitch) window.fxThemeSwitch(next, apply); else apply();
       return `theme → ${next}`;
     },
 
